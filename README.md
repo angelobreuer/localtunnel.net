@@ -64,3 +64,11 @@ Commands:
   ### Additional notes
   
   If you use a self-signed certificate for SSL, you can pass the `--allow-untrusted-certificates` option **AFTER** the `https` verb  to bypass the SSL verification.
+  
+  ## Motivation
+  
+  I have created this implementation because I did not like localtunnel's implementation: 
+  - It does not offer an option to open the browser.
+  - It is no longer actively maintained.
+  - It requires NodeJS to run, this client is able to be compiled to a single file executable.
+  - It needs a HUGE amount of resources in idle that are really unneccessary.
