@@ -219,12 +219,6 @@
   <data name="CurrentActiveConnections" xml:space="preserve">
     <value>Aktive Verbindungen</value>
   </data>
-  <data name="SchemeHttp" xml:space="preserve">
-    <value>HTTP</value>
-  </data>
-  <data name="SchemeHttps" xml:space="preserve">
-    <value>HTTPS</value>
-  </data>
   <data name="CreatingTunnelWithNConnections" xml:space="preserve">
     <value>Erstelle Tunnel mit maximal {Connections} gleichzeitige Verbindungen.</value>
   </data>
@@ -236,5 +230,20 @@
   </data>
   <data name="ShuttingDown" xml:space="preserve">
     <value>Stoppe Tunnel...</value>
+  </data>
+  <data name="WaitingForRequest" xml:space="preserve">
+    <value>Warte auf HTTP-Anfrage...</value>
+  </data>
+  <data name="Out" xml:space="preserve">
+    <value>ausgehend</value>
+  </data>
+  <data name="In" xml:space="preserve">
+    <value>eingehend</value>
+  </data>
+  <data name="ConnectionsHeader" xml:space="preserve">
+    <value>Verbindungen (E = Verbindungsherstellung, C = geschlossen, O = offen)</value>
+  </data>
+  <data name="NoDashboardDescription" xml:space="preserve">
+    <value>Wenn angegeben, wird das Dashboard deaktiviert.</value>
   </data>
 </root>

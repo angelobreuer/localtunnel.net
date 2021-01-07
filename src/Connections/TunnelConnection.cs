@@ -55,12 +55,15 @@
                 return;
             }
 
+            IsDisposed = true;
+
             if (disposing)
             {
-                _socketContext.BeginConnect();
+                if (ReferenceEquals(_socketContext.Connection, this))
+                {
+                    _socketContext.BeginConnect();
+                }
             }
-
-            IsDisposed = true;
         }
     }
 }

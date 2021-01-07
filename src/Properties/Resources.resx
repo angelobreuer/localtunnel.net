@@ -219,12 +219,6 @@
   <data name="CurrentActiveConnections" xml:space="preserve">
     <value>Current active connections</value>
   </data>
-  <data name="SchemeHttp" xml:space="preserve">
-    <value>HTTP</value>
-  </data>
-  <data name="SchemeHttps" xml:space="preserve">
-    <value>HTTPS</value>
-  </data>
   <data name="CreatingTunnelWithNConnections" xml:space="preserve">
     <value>Creating tunnel with {Connections} concurrent connection(s).</value>
   </data>
@@ -236,5 +230,20 @@
   </data>
   <data name="ShuttingDown" xml:space="preserve">
     <value>Shutting down...</value>
+  </data>
+  <data name="WaitingForRequest" xml:space="preserve">
+    <value>Waiting for request...</value>
+  </data>
+  <data name="Out" xml:space="preserve">
+    <value>out</value>
+  </data>
+  <data name="In" xml:space="preserve">
+    <value>in</value>
+  </data>
+  <data name="ConnectionsHeader" xml:space="preserve">
+    <value>Connections (E = establishing, C = closed/finished, O = open)</value>
+  </data>
+  <data name="NoDashboardDescription" xml:space="preserve">
+    <value>If specified, disables the dashboard.</value>
   </data>
 </root>

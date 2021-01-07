@@ -97,6 +97,15 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connections (E = establishing, C = closed/finished, O = open).
+        /// </summary>
+        internal static string ConnectionsHeader {
+            get {
+                return ResourceManager.GetString("ConnectionsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating tunnel....
         /// </summary>
         internal static string CreatingTunnel {
@@ -196,6 +205,15 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in.
+        /// </summary>
+        internal static string In {
+            get {
+                return ResourceManager.GetString("In", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Max concurrent connections.
         /// </summary>
         internal static string MaxConcurrentConnections {
@@ -232,11 +250,29 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to If specified, disables the dashboard..
+        /// </summary>
+        internal static string NoDashboardDescription {
+            get {
+                return ResourceManager.GetString("NoDashboardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Onlice since.
         /// </summary>
         internal static string OnlineSince {
             get {
                 return ResourceManager.GetString("OnlineSince", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to out.
+        /// </summary>
+        internal static string Out {
+            get {
+                return ResourceManager.GetString("Out", resourceCulture);
             }
         }
         
@@ -282,24 +318,6 @@ namespace Localtunnel.Properties {
         internal static string ReceiveBufferSizeDescription {
             get {
                 return ResourceManager.GetString("ReceiveBufferSizeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to HTTP.
-        /// </summary>
-        internal static string SchemeHttp {
-            get {
-                return ResourceManager.GetString("SchemeHttp", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to HTTPS.
-        /// </summary>
-        internal static string SchemeHttps {
-            get {
-                return ResourceManager.GetString("SchemeHttps", resourceCulture);
             }
         }
         
@@ -417,6 +435,15 @@ namespace Localtunnel.Properties {
         internal static string VerboseDescription {
             get {
                 return ResourceManager.GetString("VerboseDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for request....
+        /// </summary>
+        internal static string WaitingForRequest {
+            get {
+                return ResourceManager.GetString("WaitingForRequest", resourceCulture);
             }
         }
     }

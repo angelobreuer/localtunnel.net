@@ -5,12 +5,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
     using Microsoft.Extensions.Logging;
 
-    public class Tunnel
+    public class Tunnel : IDisposable
     {
         private readonly TunnelSocketContext[] _socketContexts;
 
@@ -34,15 +34,15 @@
 
         protected internal ILogger? Logger { get; }
 
-        public void Start(int connections = 10, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        /// <inheritdoc/>
+        public void Dispose() => Stop();
 
+        public async Task StartAsync(int connections = 10)
+        {
             // perform DNS resolution once
             if (!IPAddress.TryParse(Information.Url.Host, out var ipAddress))
             {
-                // TODO Async
-                var ipHostEntry = Dns.GetHostEntry(Information.Url.DnsSafeHost);
+                var ipHostEntry = await Dns.GetHostEntryAsync(Information.Url.DnsSafeHost);
 
                 ipAddress = ipHostEntry.AddressList.FirstOrDefault()
                     ?? throw new Exception(string.Format(Resources.DnsResolutionFailed, Information.Url.DnsSafeHost));
@@ -54,6 +54,21 @@
             {
                 _socketContexts[index] = new TunnelSocketContext(this, endPoint, $"SocketContext-" + index);
                 _socketContexts[index].BeginConnect();
+            }
+        }
+
+        public void Stop()
+        {
+            for (var index = 0; index < _socketContexts.Length; index++)
+            {
+                var context = _socketContexts[index];
+
+                if (context is null)
+                {
+                    continue;
+                }
+
+                context.Dispose();
             }
         }
     }

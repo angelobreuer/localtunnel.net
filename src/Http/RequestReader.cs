@@ -61,7 +61,7 @@
                 var key = line[0..index].Trim();
                 var value = line[(index + 1)..].Trim();
 
-                headers.Add(key, value);
+                headers.TryAddWithoutValidation(key, value);
             }
         }
     }

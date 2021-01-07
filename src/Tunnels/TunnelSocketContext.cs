@@ -3,21 +3,22 @@
     using System;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
     using Microsoft.Extensions.Logging;
 
-    internal sealed class TunnelSocketContext
+    internal sealed class TunnelSocketContext : IDisposable
     {
         private readonly string _label;
         private TunnelConnection? _connection;
+        private bool _disposed;
 
         public TunnelSocketContext(Tunnel tunnel, IPEndPoint endPoint, string label)
         {
             _label = label ?? throw new ArgumentNullException(nameof(label));
-            SocketAsyncEventArgs = new TunnelSocketAsyncEventArgs(this);
             Tunnel = tunnel ?? throw new ArgumentNullException(nameof(tunnel));
-            SocketAsyncEventArgs.RemoteEndPoint = endPoint;
+            EndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
         }
 
         public TunnelConnection? Connection
@@ -38,26 +39,25 @@
             }
         }
 
+        public IPEndPoint EndPoint { get; }
+
         public Socket Socket { get; private set; }
 
-        public SocketAsyncEventArgs SocketAsyncEventArgs { get; }
+        public SocketAsyncEventArgs SocketAsyncEventArgs { get; private set; }
 
         public Tunnel Tunnel { get; }
 
         public void BeginConnect()
         {
-            if (_connection is not null)
-            {
-                Tunnel.Logger.LogDebug(Resources.ConnectionClosed, _label);
+            CloseConnection();
 
-                _connection.Dispose();
-                _connection = null;
-                return; // connection will call BeginConnect()
+            SocketAsyncEventArgs = new TunnelSocketAsyncEventArgs(this) { RemoteEndPoint = EndPoint, };
+
+            if (Socket is not null)
+            {
+                CloseSocket();
             }
 
-            // TODO implement socket reuse
-            Socket?.Disconnect(reuseSocket: false);
-            Socket?.Dispose();
             Socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
             if (!Socket.ConnectAsync(SocketAsyncEventArgs))
@@ -77,6 +77,57 @@
             }
         }
 
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void CloseConnection()
+        {
+            var connection = Interlocked.Exchange(ref _connection, null);
+
+            if (connection is not null && !connection.IsDisposed)
+            {
+                Tunnel.Logger.LogDebug(Resources.ConnectionClosed, _label);
+                connection.Dispose();
+            }
+        }
+
+        private void CloseSocket()
+        {
+            if (Socket.Connected)
+            {
+                try
+                {
+                    Socket.Disconnect(reuseSocket: false);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            Socket.Dispose();
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            if (disposing)
+            {
+                SocketAsyncEventArgs.Dispose();
+                Socket?.Dispose();
+                CloseConnection();
+            }
+        }
+
         private void NotifyCompletedReceive(SocketAsyncEventArgs eventArgs)
         {
             var connection = Connection;
@@ -89,6 +140,8 @@
 
             if (connection is null)
             {
+                Tunnel.Logger?.LogDebug("[{0}] Got incoming proxy client, creating connection...", _label);
+
                 // initialize connection
                 var handle = new TunnelConnectionHandle(this);
                 connection = _connection = Tunnel.ConnectionFactory(handle);
@@ -132,6 +185,9 @@
 
             if (eventArgs.LastOperation is SocketAsyncOperation.Connect)
             {
+                Tunnel.Logger?.LogDebug(
+                    "[{0}] Connected to server, waiting for incoming proxy client.", _label);
+
                 BeginReceive();
             }
             else if (eventArgs.LastOperation is SocketAsyncOperation.Receive)

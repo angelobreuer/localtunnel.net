@@ -30,13 +30,13 @@
                 .SetMinimumLevel(configuration.Verbose ? LogLevel.Trace : LogLevel.Information));
 
             var clientLogger = loggerFactory.CreateLogger<LocaltunnelClient>();
-            using var client = new LocaltunnelClient(clientLogger);
+            using var client = new LocaltunnelClient(new Uri(configuration.Server), clientLogger);
 
             var connections = Math.Min(10, configuration.MaxConnections);
             clientLogger.LogDebug(Resources.CreatingTunnelWithNConnections, connections);
 
-            var tunnel = await client.OpenAsync(connectionFactory, configuration.Subdomain, cancellationToken);
-            tunnel.Start(connections);
+            using var tunnel = await client.OpenAsync(connectionFactory, configuration.Subdomain, cancellationToken);
+            await tunnel.StartAsync(connections);
 
             if (configuration.Browser)
             {
@@ -45,7 +45,16 @@
             }
 
             clientLogger.LogInformation(Resources.PressToExit);
-            await TunnelDashboard.Show(tunnel, configuration, cancellationToken);
+
+            if (configuration.NoDashboard)
+            {
+                await WaitSilentAsync(cancellationToken);
+            }
+            else
+            {
+                await TunnelDashboard.Show(tunnel, configuration, cancellationToken);
+            }
+
             clientLogger.LogInformation(Resources.ShuttingDown);
         }
 
@@ -58,6 +67,17 @@
             };
 
             return Process.Start(startInfo);
+        }
+
+        private static async Task WaitSilentAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(-1, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
     }
 }

@@ -8,6 +8,8 @@
 
         public int MaxConnections { get; set; }
 
+        public bool NoDashboard { get; set; }
+
         public bool Passthrough { get; set; }
 
         public int Port { get; set; }

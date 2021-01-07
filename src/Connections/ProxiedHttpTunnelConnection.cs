@@ -5,7 +5,6 @@
     using System.IO;
     using System.Net.Http;
     using System.Net.Sockets;
-    using System.Text;
     using Localtunnel.Http;
 
     public class ProxiedHttpTunnelConnection : TunnelConnection
@@ -15,6 +14,7 @@
         private bool _httpInformationParsed;
         private Socket? _proxySocket;
         private Stream? _proxyStream;
+        private ConnectionStatistics _statistics;
 
         public ProxiedHttpTunnelConnection(TunnelConnectionHandle handle, ProxiedHttpTunnelOptions options)
             : base(handle)
@@ -27,6 +27,10 @@
         public Uri BaseUri { get; }
 
         public ProxiedHttpTunnelOptions Options { get; }
+
+        public HttpRequestMessage? RequestMessage { get; private set; }
+
+        public ConnectionStatistics Statistics => _statistics;
 
         /// <inheritdoc/>
         protected internal override void Open()
@@ -46,7 +50,8 @@
                 ProcessRequest(ref data);
             }
 
-            _proxyStream.Write(data);
+            _statistics.BytesIn += data.Count;
+            _proxyStream!.Write(data);
             return true;
         }
 
@@ -69,6 +74,7 @@
                 return;
             }
 
+            RequestMessage?.Dispose();
             _proxyStream?.Dispose();
             _proxySocket?.Dispose();
             ArrayPool<byte>.Shared.Return(_receiveBuffer);
@@ -97,24 +103,23 @@
 
         private void ProcessRequest(ref ArraySegment<byte> data)
         {
-            var memoryStream = new MemoryStream(data.Array!, data.Offset, data.Count);
+            var memoryStream = new MemoryStream(data.Array!, data.Offset, data.Array!.Length);
 
-            HttpRequestMessage request;
             using (var streamReader = new StreamReader(memoryStream, leaveOpen: true))
             {
-                request = RequestReader.Parse(streamReader, BaseUri)!;
+                RequestMessage = RequestReader.Parse(streamReader, BaseUri)!;
             }
 
             // save request body as span
-            var requestBody = data.AsSpan((int)memoryStream.Position);
+            var requestBody = data.Array.AsSpan(data.Offset + (int)memoryStream.Position);
             memoryStream.Position = 0;
 
-            Options.RequestProcessor!.Process(this, request);
+            Options.RequestProcessor!.Process(this, RequestMessage);
 
             // write request back
             using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
             {
-                RequestWriter.WriteRequest(streamWriter, request);
+                RequestWriter.WriteRequest(streamWriter, RequestMessage);
             }
 
             // write request body
@@ -140,6 +145,7 @@
                     return;
                 }
 
+                _statistics.BytesOut += length;
                 Socket.Send(_receiveBuffer, 0, length, SocketFlags.None);
                 BeginRead();
             }

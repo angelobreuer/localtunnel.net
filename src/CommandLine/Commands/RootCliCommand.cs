@@ -15,6 +15,10 @@
                 aliases: new[] { "--browser", "-b" },
                 description: Resources.BrowserDescription));
 
+            Add(new Option<bool>(
+                aliases: new[] { "--no-dashboard" },
+                description: Resources.NoDashboardDescription));
+
             Add(new Option<int>(
                 aliases: new[] { "--max-connections", "-c" },
                 getDefaultValue: () => 10,
@@ -26,7 +30,7 @@
 
             Add(new Option<string>(
                 aliases: new[] { "--server", "-s" },
-                getDefaultValue: () => "localtunnel.me",
+                getDefaultValue: () => "https://localtunnel.me/",
                 description: Resources.ServerDescription));
 
             Add(new Option<string>(
