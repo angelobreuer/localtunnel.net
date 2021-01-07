@@ -4,9 +4,7 @@
 
 ## Getting Started
 
-Let's get started with starting up a simple tunnel. In the following command
-we open a proxy tunnel with a custom subdomain name (my-subdomain) and let
-the requests proxy to example.com (HTTPS).
+Let's get started with starting up a simple tunnel. In the following command, we open a proxy tunnel with a custom subdomain name (my-subdomain) and proxy requests to `example.com` (HTTPS).
 
 ```
 localtunnel --subdomain my-subdomain --host example.com --port 443 https
@@ -18,8 +16,8 @@ localtunnel --subdomain my-subdomain --host example.com --port 443 https
 
 #### Open Webbrowser
 
-If you are developing an web application or something else, you can put the --browser option onto
-your command, and the client will open your browser with the subdomain.
+If you are developing a web application or something else, you can put the --browser option onto
+your command and the client will open your browser with the subdomain.
 
 #### Dashboard
 
@@ -33,7 +31,7 @@ to emulate a real proxy. If you want to disable this to make a passthrough proxy
 
 ## CLI
 
-You can change the options as you need, here is a list of options the client offers:
+You can change the options as you need. Here is a list of options the client offers:
 
 ```
 Usage:
@@ -63,12 +61,12 @@ Commands:
   
   ### Additional notes
   
-  If you use a self-signed certificate for SSL, you can pass the `--allow-untrusted-certificates` option **AFTER** the `https` verb  to bypass the SSL verification.
+  If you use a self-signed certificate for SSL, you can pass the `--allow-untrusted-certificates` option **AFTER** the `https` verb to bypass the SSL verification.
   
   ## Motivation
   
-  I have created this implementation because I did not like localtunnel's implementation: 
+  I have created this implementation because I would not say I liked localtunnel's implementation: 
   - It does not offer an option to open the browser.
   - It is no longer actively maintained.
-  - It requires NodeJS to run, this client is able to be compiled to a single file executable.
-  - It needs a HUGE amount of resources in idle that are really unneccessary.
+  - It requires NodeJS to run. You can compile this client to a single file executable.
+  - It needs a HUGE amount of resources idle that are unnecessary.
