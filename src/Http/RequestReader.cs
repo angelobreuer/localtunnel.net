@@ -1,16 +1,32 @@
 ﻿namespace Localtunnel.Http
 {
     using System;
-    using System.IO;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Text;
 
     internal static class RequestReader
     {
-        public static HttpRequestMessage? Parse(TextReader textReader, Uri baseUri)
+        private static readonly byte[] _eol = new byte[] { (byte)'\r', (byte)'\n' };
+
+        private static string? ReadLine(ref ReadOnlySpan<byte> span)
         {
-            var statusLine = textReader.ReadLine();
+            var start = span.IndexOf(_eol);
+
+            if (start is -1)
+            {
+                return null;
+            }
+
+            var content = span[0..start];
+            span = span[(start + 2)..];
+            return Encoding.UTF8.GetString(content);
+        }
+
+        public static HttpRequestMessage? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
+        {
+            var statusLine = ReadLine(ref span);
 
             if (string.IsNullOrWhiteSpace(statusLine))
             {
@@ -32,7 +48,7 @@
             };
 
             // read headers
-            ReadHttpHeaders(textReader, requestMessage.Headers);
+            ReadHttpHeaders(ref span, requestMessage.Headers);
 
             return requestMessage;
         }
@@ -45,10 +61,10 @@
             _ => HttpVersion.Unknown,
         };
 
-        private static void ReadHttpHeaders(TextReader textReader, HttpRequestHeaders headers)
+        private static void ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers)
         {
             string? line;
-            while (!string.IsNullOrWhiteSpace(line = textReader.ReadLine()))
+            while (!string.IsNullOrWhiteSpace(line = ReadLine(ref span)))
             {
                 var index = line.IndexOf(':');
 

@@ -28,7 +28,7 @@
 
         public ProxiedHttpTunnelOptions Options { get; }
 
-        public HttpRequestMessage? RequestMessage { get; private set; }
+        public HttpRequestMessage? HttpRequest { get; private set; }
 
         public ConnectionStatistics Statistics => _statistics;
 
@@ -75,7 +75,6 @@
                 return;
             }
 
-            RequestMessage?.Dispose();
             _proxyStream?.Dispose();
             _proxySocket?.Dispose();
             ArrayPool<byte>.Shared.Return(_receiveBuffer);
@@ -104,28 +103,31 @@
 
         private void ProcessRequest(ref ArraySegment<byte> data)
         {
-            var memoryStream = new MemoryStream(data.Array!, data.Offset, data.Array!.Length);
+            var requestBuffer = data.Array!;
+            var requestBody = (ReadOnlySpan<byte>)data;
 
-            using (var streamReader = new StreamReader(memoryStream, leaveOpen: true))
-            {
-                RequestMessage = RequestReader.Parse(streamReader, BaseUri)!;
-            }
+            HttpRequest = RequestReader.Parse(ref requestBody, BaseUri)!;
+            Options.RequestProcessor!.Process(this, HttpRequest);
 
-            // save request body as span
-            var requestBody = data.Array.AsSpan(data.Offset + (int)memoryStream.Position);
-            memoryStream.Position = 0;
-
-            Options.RequestProcessor!.Process(this, RequestMessage);
+            var pooledBuffer = Tunnel.ArrayPool.Rent(data.Count + 8096);
 
             // write request back
-            using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
+            int requestLength;
+            using (var memoryStream = new MemoryStream(pooledBuffer))
             {
-                RequestWriter.WriteRequest(streamWriter, RequestMessage);
+                using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
+                {
+                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length);
+                }
+
+                requestLength = (int)memoryStream.Position;
             }
 
-            // write request body
-            memoryStream.Write(requestBody);
-            data = new(data.Array!, data.Offset, (int)memoryStream.Position);
+            requestBody.CopyTo(pooledBuffer.AsSpan(requestLength));
+            data = new(pooledBuffer, 0, requestLength + requestBody.Length);
+
+            // return current buffer
+            Tunnel.ArrayPool.Return(requestBuffer);
         }
 
         private void ReceiveCallbackInternal(IAsyncResult asyncResult)

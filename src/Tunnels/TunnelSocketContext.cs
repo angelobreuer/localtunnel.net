@@ -145,7 +145,16 @@
                 // initialize connection
                 var handle = new TunnelConnectionHandle(this);
                 connection = _connection = Tunnel.ConnectionFactory(handle);
-                connection.Open();
+
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                    return;
+                }
             }
 
             // capture buffer

@@ -127,7 +127,7 @@
             foreach (var connection in connectionHistory)
             {
                 var httpConnection = connection as ProxiedHttpTunnelConnection;
-                var requestMessage = httpConnection?.RequestMessage;
+                var requestMessage = httpConnection?.HttpRequest;
 
                 var bytesIn = httpConnection?.Statistics.BytesIn / 1024F;
                 var bytesOut = httpConnection?.Statistics.BytesIn / 1024F;

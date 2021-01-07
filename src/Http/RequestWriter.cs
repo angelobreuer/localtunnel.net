@@ -7,14 +7,18 @@
     {
         private const string HTTP_EOL = "\r\n";
 
-        public static void WriteRequest(TextWriter writer, HttpRequestMessage request)
+        public static void WriteRequest(TextWriter writer, HttpRequestMessage request, long contentLength)
         {
             // status line
             writer.Write(request.Method);
             writer.Write(' ');
             writer.Write(request.RequestUri!.PathAndQuery);
-            writer.Write(" HTTP/");
-            writer.Write(request.Version.ToString(2));
+            writer.Write(" HTTP/1.1");
+            writer.Write(HTTP_EOL);
+
+            // content length
+            writer.Write("Content-Length: ");
+            writer.Write(contentLength);
             writer.Write(HTTP_EOL);
 
             // headers
@@ -26,7 +30,6 @@
                 writer.Write(HTTP_EOL);
             }
 
-            writer.Write(HTTP_EOL);
             writer.Write(HTTP_EOL);
         }
     }
