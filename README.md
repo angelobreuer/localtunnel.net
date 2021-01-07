@@ -14,6 +14,25 @@ localtunnel --subdomain my-subdomain --host example.com --port 443 https
 
 > ![](https://i.imgur.com/cX476cI.png)
 
+## Features
+
+#### Open Webbrowser
+
+If you are developing an web application or something else, you can put the --browser option onto
+your command, and the client will open your browser with the subdomain.
+
+#### Dashboard
+
+The client records all recent connections made and shows where they pointed at. You can also disable
+the dashboard if needed.
+
+#### HTTP header manipulation
+
+The client fetches HTTP headers during the request and transforms the Host header to point onto the target domain
+to emulate a real proxy. If you want to disable this to make a passthrough proxy, specify the `--passthrough` option.
+
+## CLI
+
 You can change the options as you need, here is a list of options the client offers:
 
 ```
@@ -41,3 +60,7 @@ Commands:
   http     Starts a tunnel that exposes a HTTP server.
   https    Starts a tunnel that exposes a HTTPS server.
   ```
+  
+  ### Additional notes
+  
+  If you use a self-signed certificate for SSL, you can pass the `--allow-untrusted-certificates` option **AFTER** the `https` verb  to bypass the SSL verification.
