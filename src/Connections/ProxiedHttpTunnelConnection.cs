@@ -52,6 +52,7 @@
 
             _statistics.BytesIn += data.Count;
             _proxyStream!.Write(data);
+
             return true;
         }
 
@@ -124,7 +125,7 @@
 
             // write request body
             memoryStream.Write(requestBody);
-            data = new(data.Array!, data.Offset, (int)memoryStream.Length);
+            data = new(data.Array!, data.Offset, (int)memoryStream.Position);
         }
 
         private void ReceiveCallbackInternal(IAsyncResult asyncResult)
