@@ -156,6 +156,11 @@
             {
                 returnBuffer = connection.Process(Tunnel.ArrayPool, buffer);
             }
+            catch (Exception)
+            {
+                Dispose();
+                return;
+            }
             finally
             {
                 if (returnBuffer)
