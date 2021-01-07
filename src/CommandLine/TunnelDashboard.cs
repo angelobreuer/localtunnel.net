@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Localtunnel.Properties;
     using Localtunnel.Tunnels;
 
     internal static class TunnelDashboard
@@ -25,7 +26,7 @@
                 {
                     // console resized or started, perform repaint
                     Console.Clear();
-                    SetStatus(ConsoleColor.Green, $"(tunnel online @ tunnelclient {version.ToString(3)})", 0);
+                    SetStatus(ConsoleColor.Green, $"({Resources.TunnelOnline} {version!.ToString(3)})", 0);
                     SetStatus(ConsoleColor.Blue, $"https://github.com/angelobreuer/localtunnel-client", 1);
                     previousWidth = Console.WindowWidth;
                 }
@@ -35,7 +36,7 @@
             }
 
             // update status and run last update
-            SetStatus(ConsoleColor.Red, "(tunnel offline)", 0);
+            SetStatus(ConsoleColor.Red, Resources.TunnelOffline, 0);
             Update(tunnel, configuration, startTime);
 
             Console.CursorVisible = true;
@@ -47,15 +48,15 @@
             return stringBuilder.Append(value).Append(' ', padding).AppendLine();
         }
 
-        private static string FormatDatePart(int value, string unit)
-            => $"{value} {(value is 1 ? unit : unit + "s")}";
+        private static string FormatDatePart(int value, string singular, string plural)
+            => $"{value} {(value is 1 ? singular : plural)}";
 
         private static string FormatTimeSpan(TimeSpan time)
         {
-            return FormatDatePart(time.Days, "day") + ", " +
-                   FormatDatePart(time.Hours, "hour") + ", " +
-                   FormatDatePart(time.Minutes, "minute") + ", " +
-                   FormatDatePart(time.Seconds, "second") + " ";
+            return FormatDatePart(time.Days, Resources.Day, Resources.Days) + ", " +
+                   FormatDatePart(time.Hours, Resources.Hour, Resources.Hours) + ", " +
+                   FormatDatePart(time.Minutes, Resources.Minute, Resources.Minutes) + ", " +
+                   FormatDatePart(time.Seconds, Resources.Second, Resources.Seconds) + " ";
         }
 
         private static void SetStatus(ConsoleColor color, string status, int offset)
@@ -70,18 +71,16 @@
 
         private static void Update(Tunnel tunnel, BaseConfiguration configuration, DateTimeOffset startTime)
         {
-            var scheme = configuration is HttpsProxyConfiguration ? "HTTPS" : "HTTP";
             var stringBuilder = new StringBuilder();
             var elapsed = DateTimeOffset.UtcNow - startTime;
+            var scheme = configuration is HttpsProxyConfiguration ? Resources.SchemeHttp : Resources.SchemeHttps;
 
-            stringBuilder.AppendFullLine($"  Id:                         {tunnel.Information.Id}");
-            stringBuilder.AppendFullLine($"  URI:                        {tunnel.Information.Url}");
-            stringBuilder.AppendFullLine($"  Online since:               {FormatTimeSpan(elapsed)}");
-            stringBuilder.AppendFullLine($"  Port:                       {tunnel.Information.Port}");
-            stringBuilder.AppendFullLine($"  Max concurrent connections: {tunnel.Information.MaximumConnections}");
-            stringBuilder.AppendFullLine($"  Current active connections: {tunnel.Connections.Count()}");
-            stringBuilder.AppendFullLine(string.Empty);
-            stringBuilder.AppendFullLine($"  Forwarding HTTP requests to {configuration.Host}:{configuration.Port} ({scheme})");
+            stringBuilder.AppendFullLine($"  {Resources.TunnelId,-32} {tunnel.Information.Id}");
+            stringBuilder.AppendFullLine($"  {Resources.TunnelURI,-32} {tunnel.Information.Url}");
+            stringBuilder.AppendFullLine($"  {Resources.OnlineSince,-32} {FormatTimeSpan(elapsed)}");
+            stringBuilder.AppendFullLine($"  {Resources.Port,-32} {tunnel.Information.Port}");
+            stringBuilder.AppendFullLine($"  {Resources.MaxConcurrentConnections,-32} {tunnel.Information.MaximumConnections}");
+            stringBuilder.AppendFullLine($"  {Resources.CurrentActiveConnections,-32} {tunnel.Connections.Count()}");
             stringBuilder.AppendFullLine(string.Empty);
             stringBuilder.AppendLine().AppendLine();
 

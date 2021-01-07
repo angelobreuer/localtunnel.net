@@ -118,88 +118,88 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AllowUntrustedCertificatesDescription" xml:space="preserve">
-    <value>Specifies whether untrusted certificates are allowed (use only for development/testing purposes).</value>
+    <value>Gibt an, ob nicht vertrauenswürdige Zertifikate akzeptiert werden sollen.</value>
   </data>
   <data name="BrowserDescription" xml:space="preserve">
-    <value>If specified, opens the webpage in the browser.</value>
+    <value>Wenn angegeben, wird die Website zu der der Tunnel hinführt, im Browser geöffnet.</value>
   </data>
   <data name="ConnectionClosed" xml:space="preserve">
-    <value>[{Label}] Connection closed.</value>
+    <value>[{Label}] Verbindung geschlossen.</value>
   </data>
   <data name="ConnectionError" xml:space="preserve">
-    <value>[{Label}] Connection error: {Error}, operation: {Operation}.</value>
+    <value>[{Label}] Verbindungsfehler: {Error} während einer {Operation}-Anfrage.</value>
   </data>
   <data name="CreatingTunnel" xml:space="preserve">
-    <value>Creating tunnel...</value>
+    <value>Erstelle Tunnel...</value>
   </data>
   <data name="DnsResolutionFailed" xml:space="preserve">
-    <value>Unable to resolve DNS address for '{0}'.</value>
+    <value>Bei der Auflösung einer DNS-Adresse für '{0}' ist ein schwerwiegender Fehler aufgetreten.</value>
   </data>
   <data name="HostDescription" xml:space="preserve">
-    <value>The host to proxy requests to.</value>
-  </data>
-  <data name="HttpProxy" xml:space="preserve">
-    <value>Starts a tunnel that exposes a HTTP server.</value>
-  </data>
-  <data name="HttpsProxy" xml:space="preserve">
-    <value>Starts a tunnel that exposes a HTTPS server.</value>
-  </data>
-  <data name="MaximumConnectionsDescription" xml:space="preserve">
-    <value>The number of maximum allowed connections.</value>
-  </data>
-  <data name="PassthroughDescription" xml:space="preserve">
-    <value>If specified, the request is proxied as received and no HTTP headers are reinterpreted.</value>
+    <value>Der Host, zu dem der Tunnel eine Proxy erstellen soll.</value>
   </data>
   <data name="PortDescription" xml:space="preserve">
-    <value>The port to proxy requests to.</value>
+    <value>Der Port, zu dem der Tunnel eine Proxy erstellen soll.</value>
+  </data>
+  <data name="HttpProxy" xml:space="preserve">
+    <value>Startet einen Tunnel für einen HTTP-Server.</value>
+  </data>
+  <data name="HttpsProxy" xml:space="preserve">
+    <value>Startet einen Tunnel für einen HTTPS-Server.</value>
+  </data>
+  <data name="MaximumConnectionsDescription" xml:space="preserve">
+    <value>Die Anzahl der maximal erlaubten gleichzeitigen Verbindungen.</value>
+  </data>
+  <data name="PassthroughDescription" xml:space="preserve">
+    <value>Falls angegeben, werden die HTTP-Header so an den Server weitergegeben ohne diese zu verarbeiten und anzupassen.</value>
   </data>
   <data name="ReceiveBufferSizeDescription" xml:space="preserve">
-    <value>The minimum number of bytes to use for the receive buffer.</value>
+    <value>Die Anzahl der Bytes die für den Receive-Buffer allokalisiert werden sollen.</value>
   </data>
   <data name="SendingHttpGet" xml:space="preserve">
-    <value>Sending HTTP GET request ({URI})...</value>
+    <value>Sende HTTP GET Anfrage ({URI})...</value>
   </data>
   <data name="ServerDescription" xml:space="preserve">
-    <value>The hostname of the server to use.</value>
+    <value>Der DNS-Hostname oder die IP-Adresse des Tunnelservers.</value>
   </data>
   <data name="SubdomainDescription" xml:space="preserve">
-    <value>The name of the subdomain to use, if not specified a random subdomain name is used.</value>
+    <value>Der Name der Subdomäne, sonst wird ein zufälliger Subdomänenname generiert.</value>
   </data>
   <data name="TunnelCreated" xml:space="preserve">
-    <value>Tunnel {Id} created (max connections: {MaxConnections}, Port: {Port}, URI: {URI})</value>
+    <value>Tunnel {Id} erstellt (maximale gleichzeitige Verbindungen: {MaxConnection}, Port: {Port}, URI: {URI})</value>
   </data>
   <data name="VerboseDescription" xml:space="preserve">
-    <value>Enables detailed verbose output.</value>
+    <value>Aktiviert die detaillierte Ausgabe.</value>
   </data>
   <data name="TunnelOnline" xml:space="preserve">
-    <value>tunnel online @ tunnelclient</value>
+    <value>Tunnel aktiv @ tunnelclient</value>
   </data>
   <data name="TunnelOffline" xml:space="preserve">
-    <value>(tunnel offline)</value>
-  </data>
-  <data name="Hour" xml:space="preserve">
-    <value>hour</value>
-  </data>
-  <data name="Hours" xml:space="preserve">
-    <value>hours</value>
-  </data>
-  <data name="Minute" xml:space="preserve">
-    <value>minute</value>
-  </data>
-  <data name="Minutes" xml:space="preserve">
-    <value>minutes</value>
+    <value>(Tunnel offline)</value>
   </data>
   <data name="Day" xml:space="preserve">
-    <value>day</value>
+    <value>Tag</value>
   </data>
   <data name="Days" xml:space="preserve">
-    <value>days</value>
+    <value>Tage</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>Stunde</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>Stunden</value>
+  </data>
+  <data name="Minute" xml:space="preserve">
+    <value>Minute</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>Minuten</value>
   </data>
   <data name="Second" xml:space="preserve">
-    <value>second</value>
+    <value>Sekunde</value>
   </data>
   <data name="Seconds" xml:space="preserve">
-    <value>seconds</value>
+    <value>Sekunden</value>
   </data>
   <data name="TunnelId" xml:space="preserve">
     <value>Tunnel Id</value>
@@ -208,16 +208,16 @@
     <value>URI</value>
   </data>
   <data name="OnlineSince" xml:space="preserve">
-    <value>Onlice since</value>
+    <value>Aktiv seit</value>
   </data>
   <data name="Port" xml:space="preserve">
     <value>Port</value>
   </data>
   <data name="MaxConcurrentConnections" xml:space="preserve">
-    <value>Max concurrent connections</value>
+    <value>Max. gleichzeitige Verbindungen</value>
   </data>
   <data name="CurrentActiveConnections" xml:space="preserve">
-    <value>Current active connections</value>
+    <value>Aktive Verbindungen</value>
   </data>
   <data name="SchemeHttp" xml:space="preserve">
     <value>HTTP</value>
@@ -226,15 +226,15 @@
     <value>HTTPS</value>
   </data>
   <data name="CreatingTunnelWithNConnections" xml:space="preserve">
-    <value>Creating tunnel with {Connections} concurrent connection(s).</value>
+    <value>Erstelle Tunnel mit maximal {Connections} gleichzeitige Verbindungen.</value>
   </data>
   <data name="StartingBrowser" xml:space="preserve">
-    <value>Starting browser at {Url}...</value>
+    <value>Starte Browser '{Url}'...</value>
   </data>
   <data name="PressToExit" xml:space="preserve">
-    <value>Press [Ctrl] + [C] to exit.</value>
+    <value>Drücke [Strg] + [C] zum Beenden.</value>
   </data>
   <data name="ShuttingDown" xml:space="preserve">
-    <value>Shutting down...</value>
+    <value>Stoppe Tunnel...</value>
   </data>
 </root>

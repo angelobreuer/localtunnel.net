@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Localtunnel.Connections;
+    using Localtunnel.Properties;
     using Localtunnel.Tunnels;
     using Microsoft.Extensions.Logging;
 
@@ -32,21 +33,20 @@
             using var client = new LocaltunnelClient(clientLogger);
 
             var connections = Math.Min(10, configuration.MaxConnections);
-            clientLogger.LogDebug("Creating tunnel with {Connections} concurrent connection(s).", connections);
+            clientLogger.LogDebug(Resources.CreatingTunnelWithNConnections, connections);
 
-            var tunnel = await client.OpenAsync(connectionFactory, configuration.Subdomain);
+            var tunnel = await client.OpenAsync(connectionFactory, configuration.Subdomain, cancellationToken);
             tunnel.Start(connections);
 
             if (configuration.Browser)
             {
-                clientLogger.LogDebug("Starting browser at {Url}...", tunnel.Information.Url);
+                clientLogger.LogDebug(Resources.StartingBrowser, tunnel.Information.Url);
                 StartBrowser(tunnel);
             }
 
-            clientLogger.LogInformation("Press [Ctrl] + [C] to exit.");
+            clientLogger.LogInformation(Resources.PressToExit);
             await TunnelDashboard.Show(tunnel, configuration, cancellationToken);
-
-            clientLogger.LogInformation("Shutting down...");
+            clientLogger.LogInformation(Resources.ShuttingDown);
         }
 
         private static Process? StartBrowser(Tunnel tunnel)

@@ -61,7 +61,7 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allows untrusted certificate (use only for development/testing purposes).
+        ///   Looks up a localized string similar to Specifies whether untrusted certificates are allowed (use only for development/testing purposes)..
         /// </summary>
         internal static string AllowUntrustedCertificatesDescription {
             get {
@@ -106,7 +106,43 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to resolve DNS address for &apos;{0}&apos;!.
+        ///   Looks up a localized string similar to Creating tunnel with {Connections} concurrent connection(s)..
+        /// </summary>
+        internal static string CreatingTunnelWithNConnections {
+            get {
+                return ResourceManager.GetString("CreatingTunnelWithNConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current active connections.
+        /// </summary>
+        internal static string CurrentActiveConnections {
+            get {
+                return ResourceManager.GetString("CurrentActiveConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to day.
+        /// </summary>
+        internal static string Day {
+            get {
+                return ResourceManager.GetString("Day", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to days.
+        /// </summary>
+        internal static string Days {
+            get {
+                return ResourceManager.GetString("Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve DNS address for &apos;{0}&apos;..
         /// </summary>
         internal static string DnsResolutionFailed {
             get {
@@ -120,6 +156,24 @@ namespace Localtunnel.Properties {
         internal static string HostDescription {
             get {
                 return ResourceManager.GetString("HostDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hour.
+        /// </summary>
+        internal static string Hour {
+            get {
+                return ResourceManager.GetString("Hour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hours.
+        /// </summary>
+        internal static string Hours {
+            get {
+                return ResourceManager.GetString("Hours", resourceCulture);
             }
         }
         
@@ -142,11 +196,47 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Max concurrent connections.
+        /// </summary>
+        internal static string MaxConcurrentConnections {
+            get {
+                return ResourceManager.GetString("MaxConcurrentConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The number of maximum allowed connections..
         /// </summary>
         internal static string MaximumConnectionsDescription {
             get {
                 return ResourceManager.GetString("MaximumConnectionsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to minute.
+        /// </summary>
+        internal static string Minute {
+            get {
+                return ResourceManager.GetString("Minute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to minutes.
+        /// </summary>
+        internal static string Minutes {
+            get {
+                return ResourceManager.GetString("Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Onlice since.
+        /// </summary>
+        internal static string OnlineSince {
+            get {
+                return ResourceManager.GetString("OnlineSince", resourceCulture);
             }
         }
         
@@ -160,6 +250,15 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Port.
+        /// </summary>
+        internal static string Port {
+            get {
+                return ResourceManager.GetString("Port", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The port to proxy requests to..
         /// </summary>
         internal static string PortDescription {
@@ -169,11 +268,56 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Press [Ctrl] + [C] to exit..
+        /// </summary>
+        internal static string PressToExit {
+            get {
+                return ResourceManager.GetString("PressToExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The minimum number of bytes to use for the receive buffer..
         /// </summary>
         internal static string ReceiveBufferSizeDescription {
             get {
                 return ResourceManager.GetString("ReceiveBufferSizeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HTTP.
+        /// </summary>
+        internal static string SchemeHttp {
+            get {
+                return ResourceManager.GetString("SchemeHttp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HTTPS.
+        /// </summary>
+        internal static string SchemeHttps {
+            get {
+                return ResourceManager.GetString("SchemeHttps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to second.
+        /// </summary>
+        internal static string Second {
+            get {
+                return ResourceManager.GetString("Second", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to seconds.
+        /// </summary>
+        internal static string Seconds {
+            get {
+                return ResourceManager.GetString("Seconds", resourceCulture);
             }
         }
         
@@ -196,6 +340,24 @@ namespace Localtunnel.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shutting down....
+        /// </summary>
+        internal static string ShuttingDown {
+            get {
+                return ResourceManager.GetString("ShuttingDown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting browser at {Url}....
+        /// </summary>
+        internal static string StartingBrowser {
+            get {
+                return ResourceManager.GetString("StartingBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the subdomain to use, if not specified a random subdomain name is used..
         /// </summary>
         internal static string SubdomainDescription {
@@ -210,6 +372,42 @@ namespace Localtunnel.Properties {
         internal static string TunnelCreated {
             get {
                 return ResourceManager.GetString("TunnelCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tunnel Id.
+        /// </summary>
+        internal static string TunnelId {
+            get {
+                return ResourceManager.GetString("TunnelId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (tunnel offline).
+        /// </summary>
+        internal static string TunnelOffline {
+            get {
+                return ResourceManager.GetString("TunnelOffline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tunnel online @ tunnelclient.
+        /// </summary>
+        internal static string TunnelOnline {
+            get {
+                return ResourceManager.GetString("TunnelOnline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to URI.
+        /// </summary>
+        internal static string TunnelURI {
+            get {
+                return ResourceManager.GetString("TunnelURI", resourceCulture);
             }
         }
         
