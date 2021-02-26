@@ -2,6 +2,12 @@
 
 .NET implementation of a tunnel client for [localtunnel.me](localtunnel.me).
 
+## Installation
+
+You can install localtunnel-client using one of the followings ways:
+1. Install localtunnel-client as a dotnet global tool using: `dotnet tool install localtunnel --global`
+2. Use the latest release from the release page and put the folder in your PATH.
+
 ## Getting Started
 
 Let's get started with starting up a simple tunnel. In the following command, we open a proxy tunnel with a custom subdomain name (my-subdomain) and proxy requests to `example.com` (HTTPS).
