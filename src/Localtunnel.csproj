@@ -4,6 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>localtunnel</ToolCommandName>
+    <Description>Localtunnel implementation in .NET</Description>
+    <Company>Angelo Breuer</Company>
+    <Version>1.0.1</Version>
+    <Copyright>Angelo Breuer 2021</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
