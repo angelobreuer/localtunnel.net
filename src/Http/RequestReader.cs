@@ -24,7 +24,7 @@
             return Encoding.UTF8.GetString(content);
         }
 
-        public static HttpRequestMessage? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
+        public static Tuple<HttpRequestMessage, string, string, string>? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
         {
             var statusLine = ReadLine(ref span);
 
@@ -47,10 +47,14 @@
                 Version = GetHttpVersion(parts[2]),
             };
 
-            // read headers
-            ReadHttpHeaders(ref span, requestMessage.Headers);
 
-            return requestMessage;
+            // ---------------------------------------------------- Shahid Change here to get content as well if needed
+
+
+            // read headers
+            var ct = ReadHttpHeaders(ref span, requestMessage.Headers);
+
+            return new Tuple<HttpRequestMessage, String, String, String>(requestMessage, ct.Item1, ct.Item2, ct.Item3);
         }
 
         private static Version GetHttpVersion(string versionString) => versionString.ToUpperInvariant() switch
@@ -61,9 +65,13 @@
             _ => HttpVersion.Unknown,
         };
 
-        private static void ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers)
+        private static Tuple<string,string,string> ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers)
         {
             string? line;
+            string contenttype = "";
+            string contentencoding = "";
+            string contentlanguage = "";
+
             while (!string.IsNullOrWhiteSpace(line = ReadLine(ref span)))
             {
                 var index = line.IndexOf(':');
@@ -77,8 +85,19 @@
                 var key = line[0..index].Trim();
                 var value = line[(index + 1)..].Trim();
 
-                headers.TryAddWithoutValidation(key, value);
+
+
+                // -------------------------------------------------------------------------------------------------- Shahid Change: content headers need to be parsed as well. 
+                if (key.ToLower() == "content-type") contenttype = value; // .Add(key, value);
+                else if (key.ToLower() == "content-encoding") contentencoding += value + " ";
+                else if (key.ToLower() == "content-language") contentlanguage += value + " ";
+                else headers.TryAddWithoutValidation(key, value);
+
+                
+
             }
+
+            return new Tuple<string, string, string>(contenttype, contentencoding, contentlanguage);
         }
     }
 }

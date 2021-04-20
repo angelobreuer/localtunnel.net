@@ -106,7 +106,8 @@
             var requestBuffer = data.Array!;
             var requestBody = (ReadOnlySpan<byte>)data;
 
-            HttpRequest = RequestReader.Parse(ref requestBody, BaseUri)!;
+            var ret = RequestReader.Parse(ref requestBody, BaseUri)!;
+            HttpRequest = ret.Item1;
             Options.RequestProcessor!.Process(this, HttpRequest);
 
             var pooledBuffer = Tunnel.ArrayPool.Rent(data.Count + 8096);
@@ -117,7 +118,7 @@
             {
                 using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
                 {
-                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length);
+                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length, ret.Item2, ret.Item3, ret.Item4);
                 }
 
                 requestLength = (int)memoryStream.Position;
