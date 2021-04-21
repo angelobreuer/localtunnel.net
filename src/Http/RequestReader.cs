@@ -1,6 +1,8 @@
 ﻿namespace Localtunnel.Http
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -9,6 +11,17 @@
     internal static class RequestReader
     {
         private static readonly byte[] _eol = new byte[] { (byte)'\r', (byte)'\n' };
+
+        private static List<string> ListKnownHeaders = new List<string> {
+
+            "Allow", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Location", "Content-MD5", "Content-Range", "Content-Type", "Expires", "Last-Modified"
+        };
+
+        private static HashSet<String> KnownHeadersSet = new HashSet<string> (ListKnownHeaders, StringComparer.OrdinalIgnoreCase );
+        
+        // Note content length is omitted as its recalcualted anyways.
+        // Above are all headers as per: https://docs.microsoft.com/en-us/dotnet/api/system.net.http.headers.httpcontentheaders?view=net-5.0
+
 
         private static string? ReadLine(ref ReadOnlySpan<byte> span)
         {
@@ -24,7 +37,7 @@
             return Encoding.UTF8.GetString(content);
         }
 
-        public static HttpRequestMessage? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
+        public static Tuple<HttpRequestMessage, NameValueCollection>? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
         {
             var statusLine = ReadLine(ref span);
 
@@ -47,10 +60,18 @@
                 Version = GetHttpVersion(parts[2]),
             };
 
-            // read headers
-            ReadHttpHeaders(ref span, requestMessage.Headers);
 
-            return requestMessage;
+            // ---------------------------------------------------- Shahid Change here to get content as well if needed
+
+            //var contentHeaders = new Dictionary<string, string>();
+            var contentHeaders = new NameValueCollection();
+
+            
+
+            // read headers
+            ReadHttpHeaders(ref span, requestMessage.Headers, contentHeaders);
+
+            return new Tuple<HttpRequestMessage, NameValueCollection>(requestMessage, contentHeaders);
         }
 
         private static Version GetHttpVersion(string versionString) => versionString.ToUpperInvariant() switch
@@ -61,9 +82,12 @@
             _ => HttpVersion.Unknown,
         };
 
-        private static void ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers)
+        private static void ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers, NameValueCollection contentHeaders)
         {
             string? line;
+
+
+
             while (!string.IsNullOrWhiteSpace(line = ReadLine(ref span)))
             {
                 var index = line.IndexOf(':');
@@ -74,11 +98,19 @@
                     continue;
                 }
 
+                
+
                 var key = line[0..index].Trim();
                 var value = line[(index + 1)..].Trim();
 
-                headers.TryAddWithoutValidation(key, value);
+                if (KnownHeadersSet.Contains(key))
+                        contentHeaders.Add(key, value);
+                else 
+                        headers.TryAddWithoutValidation(key, value);
+
+
             }
+
         }
     }
 }
