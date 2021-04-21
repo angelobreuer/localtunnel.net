@@ -10,7 +10,6 @@
 
         public static void WriteRequest(TextWriter writer, HttpRequestMessage request, long contentLength, NameValueCollection contentHeaders)
         {
-
             // status line
             writer.Write(request.Method);
             writer.Write(' ');
@@ -18,25 +17,23 @@
             writer.Write(" HTTP/1.1");
             writer.Write(HTTP_EOL);
 
-
             WriteHeader(writer, "Content-Length", contentLength.ToString());
 
             // ---------------------------------------------------------- Shahid Changes
-            // ------------------------------------------------------------ Content headers were missing, and if they are not present and parsed, they will not be forwarded ahead leading to errors
-            
-            foreach(string key in contentHeaders)
+            // ------------------------------------------------------------ Content headers were
+            // missing, and if they are not present and parsed, they will not be forwarded ahead
+            // leading to errors
+
+            foreach (string key in contentHeaders)
             {
                 WriteHeader(writer, key, contentHeaders[key]);
             }
-
 
             // headers
             foreach (var (key, value) in request.Headers)
             {
                 WriteHeader(writer, key, string.Join(",", value));
             }
-
-
 
             writer.Write(HTTP_EOL);
         }

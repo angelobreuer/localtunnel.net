@@ -13,15 +13,13 @@
         private static readonly byte[] _eol = new byte[] { (byte)'\r', (byte)'\n' };
 
         private static List<string> ListKnownHeaders = new List<string> {
-
             "Allow", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Location", "Content-MD5", "Content-Range", "Content-Type", "Expires", "Last-Modified"
         };
 
-        private static HashSet<String> KnownHeadersSet = new HashSet<string> (ListKnownHeaders, StringComparer.OrdinalIgnoreCase );
-        
-        // Note content length is omitted as its recalcualted anyways.
-        // Above are all headers as per: https://docs.microsoft.com/en-us/dotnet/api/system.net.http.headers.httpcontentheaders?view=net-5.0
+        private static HashSet<string> KnownHeadersSet = new HashSet<string>(ListKnownHeaders, StringComparer.OrdinalIgnoreCase);
 
+        // Note content length is omitted as its recalculated anyways. Above are all headers as
+        // per: https://docs.microsoft.com/en-us/dotnet/api/system.net.http.headers.httpcontentheaders?view=net-5.0
 
         private static string? ReadLine(ref ReadOnlySpan<byte> span)
         {
@@ -60,13 +58,11 @@
                 Version = GetHttpVersion(parts[2]),
             };
 
-
-            // ---------------------------------------------------- Shahid Change here to get content as well if needed
+            // ---------------------------------------------------- Shahid Change here to get
+            // content as well if needed
 
             //var contentHeaders = new Dictionary<string, string>();
             var contentHeaders = new NameValueCollection();
-
-            
 
             // read headers
             ReadHttpHeaders(ref span, requestMessage.Headers, contentHeaders);
@@ -86,8 +82,6 @@
         {
             string? line;
 
-
-
             while (!string.IsNullOrWhiteSpace(line = ReadLine(ref span)))
             {
                 var index = line.IndexOf(':');
@@ -98,19 +92,18 @@
                     continue;
                 }
 
-                
-
                 var key = line[0..index].Trim();
                 var value = line[(index + 1)..].Trim();
 
                 if (KnownHeadersSet.Contains(key))
-                        contentHeaders.Add(key, value);
-                else 
-                        headers.TryAddWithoutValidation(key, value);
-
-
+                {
+                    contentHeaders.Add(key, value);
+                }
+                else
+                {
+                    headers.TryAddWithoutValidation(key, value);
+                }
             }
-
         }
     }
 }
