@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Localtunnel": {
-      "commandName": "Project",
-      "commandLineArgs": "--subdomain my-scim  --port 50212 http"
-    }
-  }
-}
