@@ -1,5 +1,6 @@
 ﻿namespace Localtunnel.Http
 {
+    using System.Collections.Specialized;
     using System.IO;
     using System.Net.Http;
 
@@ -7,7 +8,7 @@
     {
         private const string HTTP_EOL = "\r\n";
 
-        public static void WriteRequest(TextWriter writer, HttpRequestMessage request, long contentLength, string contenttype, string contentencoding, string contentlanguage)
+        public static void WriteRequest(TextWriter writer, HttpRequestMessage request, long contentLength, NameValueCollection contentHeaders)
         {
 
             // status line
@@ -17,49 +18,38 @@
             writer.Write(" HTTP/1.1");
             writer.Write(HTTP_EOL);
 
-            // content length
-            writer.Write("Content-Length: ");
-            writer.Write(contentLength);
-            writer.Write(HTTP_EOL);
+
+            WriteHeader(writer, "Content-Length", contentLength.ToString());
 
             // ---------------------------------------------------------- Shahid Changes
             // ------------------------------------------------------------ Content headers were missing, and if they are not present and parsed, they will not be forwarded ahead leading to errors
-            if (contenttype != "")
+            
+            foreach(string key in contentHeaders)
             {
-                writer.Write("Content-Type");
-                writer.Write(": ");
-                writer.Write(string.Join(",", contenttype));
-                writer.Write(HTTP_EOL);
+                WriteHeader(writer, key, contentHeaders[key]);
             }
 
-            if (contentencoding != "")
-            {
-                writer.Write("Content-Encoding");
-                writer.Write(": ");
-                writer.Write(string.Join(",", contentencoding));
-                writer.Write(HTTP_EOL);
-            }
-
-            if (contentlanguage != "")
-            {
-                writer.Write("Content-Language");
-                writer.Write(": ");
-                writer.Write(string.Join(",", contentencoding));
-                writer.Write(HTTP_EOL);
-            }
 
             // headers
             foreach (var (key, value) in request.Headers)
             {
-                writer.Write(key);
-                writer.Write(": ");
-                writer.Write(string.Join(",", value));
-                writer.Write(HTTP_EOL);
+                WriteHeader(writer, key, string.Join(",", value));
             }
 
 
 
             writer.Write(HTTP_EOL);
+        }
+
+        public static void WriteHeader(TextWriter writer, string key, string? encodedValues)
+        {
+            if (encodedValues is not null && encodedValues != "")
+            {
+                writer.Write(key);
+                writer.Write(": ");
+                writer.Write(encodedValues);
+                writer.Write(HTTP_EOL);
+            }
         }
     }
 }

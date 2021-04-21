@@ -1,6 +1,8 @@
 ﻿namespace Localtunnel.Http
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -9,6 +11,17 @@
     internal static class RequestReader
     {
         private static readonly byte[] _eol = new byte[] { (byte)'\r', (byte)'\n' };
+
+        private static List<string> ListKnownHeaders = new List<string> {
+
+            "Allow", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Location", "Content-MD5", "Content-Range", "Content-Type", "Expires", "Last-Modified"
+        };
+
+        private static HashSet<String> KnownHeadersSet = new HashSet<string> (ListKnownHeaders, StringComparer.OrdinalIgnoreCase );
+        
+        // Note content length is omitted as its recalcualted anyways.
+        // Above are all headers as per: https://docs.microsoft.com/en-us/dotnet/api/system.net.http.headers.httpcontentheaders?view=net-5.0
+
 
         private static string? ReadLine(ref ReadOnlySpan<byte> span)
         {
@@ -24,7 +37,7 @@
             return Encoding.UTF8.GetString(content);
         }
 
-        public static Tuple<HttpRequestMessage, string, string, string>? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
+        public static Tuple<HttpRequestMessage, NameValueCollection>? Parse(ref ReadOnlySpan<byte> span, Uri baseUri)
         {
             var statusLine = ReadLine(ref span);
 
@@ -50,11 +63,15 @@
 
             // ---------------------------------------------------- Shahid Change here to get content as well if needed
 
+            //var contentHeaders = new Dictionary<string, string>();
+            var contentHeaders = new NameValueCollection();
+
+            
 
             // read headers
-            var ct = ReadHttpHeaders(ref span, requestMessage.Headers);
+            ReadHttpHeaders(ref span, requestMessage.Headers, contentHeaders);
 
-            return new Tuple<HttpRequestMessage, String, String, String>(requestMessage, ct.Item1, ct.Item2, ct.Item3);
+            return new Tuple<HttpRequestMessage, NameValueCollection>(requestMessage, contentHeaders);
         }
 
         private static Version GetHttpVersion(string versionString) => versionString.ToUpperInvariant() switch
@@ -65,12 +82,11 @@
             _ => HttpVersion.Unknown,
         };
 
-        private static Tuple<string,string,string> ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers)
+        private static void ReadHttpHeaders(ref ReadOnlySpan<byte> span, HttpRequestHeaders headers, NameValueCollection contentHeaders)
         {
             string? line;
-            string contenttype = "";
-            string contentencoding = "";
-            string contentlanguage = "";
+
+
 
             while (!string.IsNullOrWhiteSpace(line = ReadLine(ref span)))
             {
@@ -82,22 +98,19 @@
                     continue;
                 }
 
+                
+
                 var key = line[0..index].Trim();
                 var value = line[(index + 1)..].Trim();
 
+                if (KnownHeadersSet.Contains(key))
+                        contentHeaders.Add(key, value);
+                else 
+                        headers.TryAddWithoutValidation(key, value);
 
-
-                // -------------------------------------------------------------------------------------------------- Shahid Change: content headers need to be parsed as well. 
-                if (key.ToLower() == "content-type") contenttype = value; // .Add(key, value);
-                else if (key.ToLower() == "content-encoding") contentencoding += value + " ";
-                else if (key.ToLower() == "content-language") contentlanguage += value + " ";
-                else headers.TryAddWithoutValidation(key, value);
-
-                
 
             }
 
-            return new Tuple<string, string, string>(contenttype, contentencoding, contentlanguage);
         }
     }
 }

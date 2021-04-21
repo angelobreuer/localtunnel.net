@@ -2,6 +2,7 @@
 {
     using System;
     using System.Buffers;
+    using System.Collections.Specialized;
     using System.IO;
     using System.Net.Http;
     using System.Net.Sockets;
@@ -29,6 +30,8 @@
         public ProxiedHttpTunnelOptions Options { get; }
 
         public HttpRequestMessage? HttpRequest { get; private set; }
+
+        public NameValueCollection? ContentHeaders { get; private set; }
 
         public ConnectionStatistics Statistics => _statistics;
 
@@ -108,6 +111,8 @@
 
             var ret = RequestReader.Parse(ref requestBody, BaseUri)!;
             HttpRequest = ret.Item1;
+            ContentHeaders = ret.Item2;
+
             Options.RequestProcessor!.Process(this, HttpRequest);
 
             var pooledBuffer = Tunnel.ArrayPool.Rent(data.Count + 8096);
@@ -118,7 +123,7 @@
             {
                 using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
                 {
-                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length, ret.Item2, ret.Item3, ret.Item4);
+                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length, ContentHeaders);
                 }
 
                 requestLength = (int)memoryStream.Position;
