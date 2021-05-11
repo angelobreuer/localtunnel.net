@@ -1,6 +1,6 @@
 # localtunnel-client
 
-.NET implementation of a tunnel client for [localtunnel.me](localtunnel.me).
+.NET implementation of a tunnel client for [https://theboroer.github.io/localtunnel-www/](localtunnel.me).
 
 ## Installation
 
