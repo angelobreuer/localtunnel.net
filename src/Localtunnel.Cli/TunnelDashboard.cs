@@ -1,4 +1,4 @@
-﻿namespace Localtunnel.CommandLine
+﻿namespace Localtunnel.Cli
 {
     using System;
     using System.Collections.Generic;
@@ -8,6 +8,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Localtunnel.Cli.Configuration;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
     using Localtunnel.Tunnels;
@@ -36,15 +37,15 @@
                     previousWidth = Console.WindowWidth;
                 }
 
-                Update(tunnel, stringBuilder, connectionHistory, configuration, startTime);
-                UpdateConnections(tunnel, connectionHistory, configuration);
+                Update(tunnel, stringBuilder, startTime);
+                UpdateConnections(tunnel, connectionHistory);
                 await Task.Delay(100, CancellationToken.None);
             }
 
             // update status and run last update
             Console.Clear();
             SetStatus(ConsoleColor.Red, Resources.TunnelOffline, 0);
-            Update(tunnel, stringBuilder, connectionHistory, configuration, startTime);
+            Update(tunnel, stringBuilder, startTime);
 
             Console.CursorVisible = true;
         }
@@ -86,7 +87,7 @@
             Console.ResetColor();
         }
 
-        private static void Update(Tunnel tunnel, StringBuilder stringBuilder, Stack<TunnelConnection> connectionHistory, BaseConfiguration configuration, DateTimeOffset startTime)
+        private static void Update(Tunnel tunnel, StringBuilder stringBuilder, DateTimeOffset startTime)
         {
             stringBuilder.Clear();
 
@@ -104,7 +105,7 @@
             Console.Write(stringBuilder);
         }
 
-        private static void UpdateConnections(Tunnel tunnel, Stack<TunnelConnection> connectionHistory, BaseConfiguration configuration)
+        private static void UpdateConnections(Tunnel tunnel, Stack<TunnelConnection> connectionHistory)
         {
             var connections = connectionHistory.Count;
 

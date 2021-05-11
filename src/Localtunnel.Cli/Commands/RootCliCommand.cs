@@ -1,4 +1,4 @@
-﻿namespace Localtunnel.CommandLine.Commands
+﻿namespace Localtunnel.Cli.Commands
 {
     using System.CommandLine;
     using Localtunnel.Properties;

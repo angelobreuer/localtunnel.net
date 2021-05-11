@@ -1,9 +1,10 @@
-﻿namespace Localtunnel.CommandLine
+﻿namespace Localtunnel.Cli
 {
     using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Localtunnel.Cli.Configuration;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
     using Localtunnel.Tunnels;
@@ -30,7 +31,7 @@
                 .SetMinimumLevel(configuration.Verbose ? LogLevel.Trace : LogLevel.Information));
 
             var clientLogger = loggerFactory.CreateLogger<LocaltunnelClient>();
-            using var client = new LocaltunnelClient(new Uri(configuration.Server), clientLogger);
+            using var client = new LocaltunnelClient(new Uri(configuration.Server!), clientLogger);
 
             var connections = Math.Min(10, configuration.MaxConnections);
             clientLogger.LogDebug(Resources.CreatingTunnelWithNConnections, connections);

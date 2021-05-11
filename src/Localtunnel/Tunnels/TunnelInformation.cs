@@ -7,7 +7,7 @@
     {
         [JsonInclude]
         [JsonPropertyName("id")]
-        public string Id { get; private set; }
+        public string Id { get; private set; } = null!;
 
         [JsonInclude]
         [JsonPropertyName("max_conn_count")]
@@ -22,6 +22,6 @@
 
         [JsonInclude]
         [JsonPropertyName("url")]
-        public Uri Url { get; private set; }
+        public Uri Url { get; private set; } = null!;
     }
 }

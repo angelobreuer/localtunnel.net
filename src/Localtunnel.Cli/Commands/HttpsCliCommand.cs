@@ -1,9 +1,10 @@
-﻿namespace Localtunnel.CommandLine.Commands
+﻿namespace Localtunnel.Cli.Commands
 {
     using System.CommandLine;
     using System.CommandLine.Invocation;
     using System.Threading;
     using System.Threading.Tasks;
+    using Localtunnel.Cli.Configuration;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
 
@@ -23,7 +24,7 @@
         {
             var options = new ProxiedSslTunnelOptions
             {
-                Host = configuration.Host,
+                Host = configuration.Host!,
                 ReceiveBufferSize = configuration.ReceiveBufferSize,
                 Port = configuration.Port,
                 AllowUntrustedCertificates = configuration.AllowUntrustedCertificates,

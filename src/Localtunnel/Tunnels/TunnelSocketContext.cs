@@ -41,9 +41,9 @@
 
         public IPEndPoint EndPoint { get; }
 
-        public Socket Socket { get; private set; }
+        public Socket? Socket { get; private set; }
 
-        public SocketAsyncEventArgs SocketAsyncEventArgs { get; private set; }
+        public SocketAsyncEventArgs? SocketAsyncEventArgs { get; private set; }
 
         public Tunnel Tunnel { get; }
 
@@ -69,9 +69,9 @@
         public void BeginReceive()
         {
             var buffer = Tunnel.ArrayPool.Rent(Tunnel.Information.ReceiveBufferSize);
-            SocketAsyncEventArgs.SetBuffer(buffer, offset: 0, count: buffer.Length);
+            SocketAsyncEventArgs!.SetBuffer(buffer, offset: 0, count: buffer.Length);
 
-            if (!Socket.ReceiveAsync(SocketAsyncEventArgs))
+            if (!Socket!.ReceiveAsync(SocketAsyncEventArgs))
             {
                 NotifyCompletion(SocketAsyncEventArgs);
             }
@@ -97,6 +97,11 @@
 
         private void CloseSocket()
         {
+            if (Socket is null)
+            {
+                return;
+            }
+
             if (Socket.Connected)
             {
                 try
@@ -122,8 +127,9 @@
 
             if (disposing)
             {
-                SocketAsyncEventArgs.Dispose();
+                SocketAsyncEventArgs?.Dispose();
                 Socket?.Dispose();
+
                 CloseConnection();
             }
         }
@@ -158,7 +164,7 @@
             }
 
             // capture buffer
-            var buffer = new ArraySegment<byte>(eventArgs.Buffer, 0, eventArgs.BytesTransferred);
+            var buffer = new ArraySegment<byte>(eventArgs.Buffer!, 0, eventArgs.BytesTransferred);
 
             var returnBuffer = true;
             try

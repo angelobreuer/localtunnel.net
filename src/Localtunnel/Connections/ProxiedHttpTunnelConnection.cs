@@ -155,7 +155,7 @@
                 }
 
                 _statistics.BytesOut += length;
-                Socket.Send(_receiveBuffer, 0, length, SocketFlags.None);
+                Socket?.Send(_receiveBuffer, 0, length, SocketFlags.None);
                 BeginRead();
             }
             catch (Exception)

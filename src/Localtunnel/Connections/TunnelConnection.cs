@@ -14,7 +14,7 @@
             _socketContext = handle.SocketContext ?? throw new InvalidOperationException("Invalid tunnel handle.");
         }
 
-        public Socket Socket => _socketContext.Socket;
+        public Socket? Socket => _socketContext.Socket;
 
         public Tunnel Tunnel => _socketContext.Tunnel;
 
