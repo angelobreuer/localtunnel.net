@@ -5,7 +5,7 @@
 ## Installation
 
 You can install localtunnel-client using one of the followings ways:
-1. Install localtunnel-client as a dotnet global tool using: `dotnet tool install localtunnel --global`
+1. Install localtunnel-client as a dotnet global tool using: `dotnet tool install localtunnel.cli --global`
 2. Use the latest release from the release page and put the folder in your PATH.
 
 ## Getting Started
