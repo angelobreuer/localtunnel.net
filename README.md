@@ -69,6 +69,13 @@ Commands:
   
   If you use a self-signed certificate for SSL, you can pass the `--allow-untrusted-certificates` option **AFTER** the `https` verb to bypass the SSL verification.
   
+  After May 11, 2021 localtunnel-client was split into two separate assemblies (see: #4), if you installed localtunnel-client before that, you can run the following to upgrade:
+  
+  ```bash
+  dotnet tool uninstall localtunnel --global
+  dotnet tool install localtunnel.cli --global
+  ```
+  
   ## Motivation
   
   I have created this implementation because I would not say I liked localtunnel's implementation: 
