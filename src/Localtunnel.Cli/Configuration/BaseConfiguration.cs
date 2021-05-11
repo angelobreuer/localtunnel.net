@@ -1,4 +1,4 @@
-﻿namespace Localtunnel.CommandLine
+﻿namespace Localtunnel.Cli.Configuration
 {
     internal abstract class BaseConfiguration
     {

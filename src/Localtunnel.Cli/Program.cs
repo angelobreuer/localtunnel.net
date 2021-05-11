@@ -1,4 +1,4 @@
 ﻿using System.CommandLine;
-using Localtunnel.CommandLine.Commands;
+using Localtunnel.Cli.Commands;
 
 return await new RootCliCommand().InvokeAsync(args);

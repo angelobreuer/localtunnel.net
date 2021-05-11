@@ -1,9 +1,10 @@
-﻿namespace Localtunnel.CommandLine
+﻿namespace Localtunnel.Cli
 {
     using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Localtunnel.Cli.Configuration;
     using Localtunnel.Connections;
     using Localtunnel.Properties;
     using Localtunnel.Tunnels;

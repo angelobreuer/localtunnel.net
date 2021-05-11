@@ -1,22 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
 
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>localtunnel</ToolCommandName>
     <Description>Localtunnel implementation in .NET</Description>
     <Company>Angelo Breuer</Company>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Copyright>Angelo Breuer 2021</Copyright>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Angelo Breuer</Authors>
+    <PackageProjectUrl>https://github.com/angelobreuer/localtunnel-client</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/localtunnel-client</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>localtunnel</PackageTags>
+    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
   </ItemGroup>
 
   <ItemGroup>
