@@ -20,7 +20,7 @@
         {
             var options = new ProxiedHttpTunnelOptions
             {
-                Host = configuration.Host,
+                Host = configuration.Host!,
                 ReceiveBufferSize = configuration.ReceiveBufferSize,
                 Port = configuration.Port,
             };

@@ -24,7 +24,7 @@
         {
             var options = new ProxiedSslTunnelOptions
             {
-                Host = configuration.Host,
+                Host = configuration.Host!,
                 ReceiveBufferSize = configuration.ReceiveBufferSize,
                 Port = configuration.Port,
                 AllowUntrustedCertificates = configuration.AllowUntrustedCertificates,

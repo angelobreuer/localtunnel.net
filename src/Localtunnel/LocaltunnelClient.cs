@@ -53,7 +53,7 @@
             var requestUri = subdomain is null ? "/?new" : string.Concat('/', subdomain);
             _logger?.LogTrace(Resources.SendingHttpGet, requestUri);
 
-            var response = await _httpClient.GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken);
+            var response = (await _httpClient.GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken))!;
             _logger?.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
 
             return response;
