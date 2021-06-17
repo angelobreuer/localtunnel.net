@@ -64,6 +64,25 @@ Commands:
   http     Starts a tunnel that exposes a HTTP server.
   https    Starts a tunnel that exposes a HTTPS server.
   ```
+
+### Using as a library
+
+You can use localtunnel-client as a .NET library. The following code demonstrates how to create a secured tunnel:
+
+```csharp
+using System.Threading.Tasks;
+using Localtunnel;
+using Localtunnel.Connections;
+
+using var client = new LocaltunnelClient();
+var options = new ProxiedSslTunnelOptions { };
+
+var tunnel = await client.OpenAsync(
+    connectionFactory: x => new ProxiedSslTunnelConnection(x, options),
+    subdomain: "my-domain");
+
+await Task.Delay(-1);
+```
   
   ### Additional notes
   
