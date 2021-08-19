@@ -131,7 +131,7 @@
                 var requestMessage = httpConnection?.HttpRequest;
 
                 var bytesIn = httpConnection?.Statistics.BytesIn / 1024F;
-                var bytesOut = httpConnection?.Statistics.BytesIn / 1024F;
+                var bytesOut = httpConnection?.Statistics.BytesOut / 1024F;
                 var stats = $"({bytesOut:0.0} KiB {Resources.Out}, {bytesIn:0.0} KiB {Resources.In})";
 
                 var isEstablishing = httpConnection is not null
