@@ -1,4 +1,4 @@
-﻿namespace Localtunnel.Tunnels
+namespace Localtunnel.Tunnels
 {
     using System;
     using System.Net;
@@ -90,7 +90,7 @@
 
             if (connection is not null && !connection.IsDisposed)
             {
-                Tunnel.Logger.LogDebug(Resources.ConnectionClosed, _label);
+                Tunnel.Logger?.LogDebug(Resources.ConnectionClosed, _label);
                 connection.Dispose();
             }
         }
