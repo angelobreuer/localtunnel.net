@@ -21,4 +21,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Localtunnel\Localtunnel.csproj" />
   </ItemGroup>
+
+  <Target Name="Rename" AfterTargets="AfterBuild">
+    <Move SourceFiles="$(OUTDIR)\$(MSBuildProjectName).exe" DestinationFiles="$(OUTDIR)\$(ToolCommandName).exe" />
+    <Message Text="Renamed CLI executable to $(ToolCommandName)" Importance="high" />
+  </Target>
 </Project>
