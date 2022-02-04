@@ -393,3 +393,5 @@ yarn-lock.json
 /data
 /src/machine-learning
 /src/Localtunnel.Cli/Properties/launchSettings.json
+/src/Localtunnel.Server/Properties/launchSettings.json
+/src/Localtunnel.Server/appsettings.json
