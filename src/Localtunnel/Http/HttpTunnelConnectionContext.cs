@@ -9,7 +9,7 @@ using Localtunnel.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.Extensions.Primitives;
 
-public sealed class HttpTunnelConnectionContext : IHttpHeadersHandler, IHttpRequestLineHandler
+internal sealed class HttpTunnelConnectionContext : IHttpHeadersHandler, IHttpRequestLineHandler, IHttpTunnelConnectionContext
 {
     private static readonly ReadOnlyMemory<byte> CrLf = new byte[] { (byte)'\r', (byte)'\n' };
     private static readonly ReadOnlyMemory<byte> Space = new byte[] { (byte)' ', };
@@ -66,7 +66,7 @@ public sealed class HttpTunnelConnectionContext : IHttpHeadersHandler, IHttpRequ
 
             _httpRequest = new HttpRequest
             {
-                Headers = _headers!.ToImmutableDictionary(),
+                Headers = _headers!.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
                 HttpVersion = _httpVersion!,
                 PathAndQuery = _pathAndQuery!,
                 RequestMethod = _httpMethod!,

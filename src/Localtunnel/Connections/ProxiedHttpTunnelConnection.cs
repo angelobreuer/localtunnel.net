@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Localtunnel.Http;
 
@@ -109,14 +110,14 @@ public class ProxiedHttpTunnelConnection : TunnelConnection
 
     private void ProcessRequest(ref Memory<byte> data)
     {
-        _httpConnectionContext ??= new HttpTunnelConnectionContext(this);
+        _httpConnectionContext = new HttpTunnelConnectionContext(this);
 
         if (!_httpConnectionContext.ProcessData(data))
         {
             return;
         }
 
-        data = _httpConnectionContext.Buffer.ToArray();
+        data = MemoryMarshal.AsMemory(_httpConnectionContext.Buffer);
 
     }
     private HttpTunnelConnectionContext _httpConnectionContext = null;

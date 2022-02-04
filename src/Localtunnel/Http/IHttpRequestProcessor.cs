@@ -2,5 +2,5 @@
 
 public interface IHttpRequestProcessor
 {
-    void Process(HttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest);
+    void Process(IHttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest);
 }

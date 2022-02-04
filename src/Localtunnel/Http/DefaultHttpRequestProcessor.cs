@@ -13,12 +13,13 @@ public sealed class DefaultHttpRequestProcessor : IHttpRequestProcessor
     public static DefaultHttpRequestProcessor Instance { get; } = new DefaultHttpRequestProcessor();
 
     /// <inheritdoc/>
-    public void Process(HttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest)
+    public void Process(IHttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest)
     {
         var headers = new Dictionary<string, StringValues>(httpRequest.Headers, StringComparer.OrdinalIgnoreCase)
         {
             ["Host"] = connectionContext.Connection.Options.Host,
             ["X-Passthrough"] = "false",
+            ["Connection"] = "close",
         };
 
         httpRequest = httpRequest with { Headers = headers, };
