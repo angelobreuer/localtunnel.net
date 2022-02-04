@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Localtunnel.Cli.Configuration;
     using Localtunnel.Connections;
+    using Localtunnel.Http;
     using Localtunnel.Properties;
     using Localtunnel.Tunnels;
 
@@ -67,9 +67,9 @@
                    FormatDatePart(time.Seconds, Resources.Second, Resources.Seconds) + " ";
         }
 
-        private static string GetIssuer(HttpRequestMessage? request)
+        private static string GetIssuer(HttpRequest? request)
         {
-            if (request is not null && request.Headers.TryGetValues("x-real-ip", out var ip))
+            if (request is not null && request.Value.Headers.TryGetValue("x-real-ip", out var ip))
             {
                 return ip.FirstOrDefault() ?? Resources.WaitingForRequest;
             }
@@ -138,11 +138,11 @@
                     && httpConnection.Statistics.BytesOut is 0
                     && httpConnection.Statistics.BytesIn is 0;
 
-                var requestUri = requestMessage?.RequestUri?.ToString() ?? "???";
+                var requestUri = requestMessage?.PathAndQuery?.ToString() ?? "???";
 
                 if (requestUri.Length > 50)
                 {
-                    requestUri = requestUri.Substring(0, 47) + "...";
+                    requestUri = requestUri[..47] + "...";
                 }
 
                 var pipe = connection.IsDisposed ? "-X->" : "--->";

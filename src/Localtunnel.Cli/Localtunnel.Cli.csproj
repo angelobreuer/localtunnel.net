@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackAsTool>true</PackAsTool>
@@ -22,8 +22,8 @@
     <ProjectReference Include="..\Localtunnel\Localtunnel.csproj" />
   </ItemGroup>
 
-  <Target Name="Rename" AfterTargets="AfterBuild">
+  <!--<Target Name="Rename" AfterTargets="AfterBuild">
     <Move SourceFiles="$(OUTDIR)\$(MSBuildProjectName).exe" DestinationFiles="$(OUTDIR)\$(ToolCommandName).exe" />
     <Message Text="Renamed CLI executable to $(ToolCommandName)" Importance="high" />
-  </Target>
+  </Target>-->
 </Project>

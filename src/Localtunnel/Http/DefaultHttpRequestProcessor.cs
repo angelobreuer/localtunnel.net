@@ -1,7 +1,8 @@
 ﻿namespace Localtunnel.Http
 {
-    using System.Net.Http;
-    using Localtunnel.Connections;
+    using System;
+    using System.Collections.Generic;
+    using Microsoft.Extensions.Primitives;
 
     public sealed class DefaultHttpRequestProcessor : IHttpRequestProcessor
     {
@@ -12,10 +13,15 @@
         public static DefaultHttpRequestProcessor Instance { get; } = new DefaultHttpRequestProcessor();
 
         /// <inheritdoc/>
-        public void Process(ProxiedHttpTunnelConnection connection, HttpRequestMessage requestMessage)
+        public void Process(HttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest)
         {
-            // change host
-            requestMessage.Headers.Host = connection.Options.Host;
+            var headers = new Dictionary<string, StringValues>(httpRequest.Headers, StringComparer.OrdinalIgnoreCase)
+            {
+                ["Host"] = connectionContext.Connection.Options.Host,
+                ["X-Passthrough"] = "false",
+            };
+
+            httpRequest = httpRequest with { Headers = headers, };
         }
     }
 }
