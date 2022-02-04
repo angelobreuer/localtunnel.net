@@ -1,7 +1,6 @@
-﻿namespace Localtunnel.Http
+﻿namespace Localtunnel.Http;
+
+public interface IHttpRequestProcessor
 {
-    public interface IHttpRequestProcessor
-    {
-        void Process(HttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest);
-    }
+    void Process(HttpTunnelConnectionContext connectionContext, ref HttpRequest httpRequest);
 }

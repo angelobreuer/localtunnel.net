@@ -1,7 +1,6 @@
-﻿namespace Localtunnel.Cli.Configuration
+﻿namespace Localtunnel.Cli.Configuration;
+
+internal sealed class HttpsProxyConfiguration : BaseConfiguration
 {
-    internal sealed class HttpsProxyConfiguration : BaseConfiguration
-    {
-        public bool AllowUntrustedCertificates { get; set; }
-    }
+    public bool AllowUntrustedCertificates { get; set; }
 }

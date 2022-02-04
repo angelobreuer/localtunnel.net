@@ -1,15 +1,14 @@
-﻿namespace Localtunnel.Connections
+﻿namespace Localtunnel.Connections;
+
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+internal static class RemoteCertificateValidation
 {
-    using System.Net.Security;
-    using System.Security.Cryptography.X509Certificates;
+    public static readonly RemoteCertificateValidationCallback AllowAny = AllowAnyImpl;
 
-    internal static class RemoteCertificateValidation
+    private static bool AllowAnyImpl(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
-        public static readonly RemoteCertificateValidationCallback AllowAny = AllowAnyImpl;
-
-        private static bool AllowAnyImpl(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
-        }
+        return true;
     }
 }

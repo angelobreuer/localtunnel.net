@@ -1,6 +1,5 @@
-﻿namespace Localtunnel.Cli.Configuration
+﻿namespace Localtunnel.Cli.Configuration;
+
+internal sealed class HttpProxyConfiguration : BaseConfiguration
 {
-    internal sealed class HttpProxyConfiguration : BaseConfiguration
-    {
-    }
 }

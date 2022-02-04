@@ -1,45 +1,44 @@
-﻿namespace Localtunnel.Connections
+﻿namespace Localtunnel.Connections;
+
+using System;
+using System.IO;
+using System.Net.Security;
+using System.Net.Sockets;
+
+public class ProxiedSslTunnelConnection : ProxiedHttpTunnelConnection
 {
-    using System;
-    using System.IO;
-    using System.Net.Security;
-    using System.Net.Sockets;
+    private readonly ProxiedSslTunnelOptions _options;
 
-    public class ProxiedSslTunnelConnection : ProxiedHttpTunnelConnection
+    public ProxiedSslTunnelConnection(TunnelConnectionHandle handle, ProxiedSslTunnelOptions options)
+        : base(handle, options)
     {
-        private readonly ProxiedSslTunnelOptions _options;
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
 
-        public ProxiedSslTunnelConnection(TunnelConnectionHandle handle, ProxiedSslTunnelOptions options)
-            : base(handle, options)
+    /// <inheritdoc/>
+    protected override Stream CreateProxyStream(Socket proxySocket)
+    {
+        var stream = base.CreateProxyStream(proxySocket);
+        var sslStream = new SslStream(stream);
+
+        var options = new SslClientAuthenticationOptions
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            TargetHost = _options.Host,
+        };
+
+        if (_options.AllowUntrustedCertificates)
+        {
+            options.RemoteCertificateValidationCallback = RemoteCertificateValidation.AllowAny;
         }
 
-        /// <inheritdoc/>
-        protected override Stream CreateProxyStream(Socket proxySocket)
-        {
-            var stream = base.CreateProxyStream(proxySocket);
-            var sslStream = new SslStream(stream);
+        sslStream.AuthenticateAsClient(options);
 
-            var options = new SslClientAuthenticationOptions
-            {
-                TargetHost = _options.Host,
-            };
+        return sslStream;
+    }
 
-            if (_options.AllowUntrustedCertificates)
-            {
-                options.RemoteCertificateValidationCallback = RemoteCertificateValidation.AllowAny;
-            }
-
-            sslStream.AuthenticateAsClient(options);
-
-            return sslStream;
-        }
-
-        /// <inheritdoc/>
-        protected override Uri GetBaseUri()
-        {
-            return new UriBuilder(Uri.UriSchemeHttps, Options.Host, Options.Port).Uri;
-        }
+    /// <inheritdoc/>
+    protected override Uri GetBaseUri()
+    {
+        return new UriBuilder(Uri.UriSchemeHttps, Options.Host, Options.Port).Uri;
     }
 }

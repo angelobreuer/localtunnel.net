@@ -1,9 +1,8 @@
-﻿namespace Localtunnel.Connections
-{
-    public struct ConnectionStatistics
-    {
-        public long BytesIn { get; set; }
+﻿namespace Localtunnel.Connections;
 
-        public long BytesOut { get; set; }
-    }
+public struct ConnectionStatistics
+{
+    public long BytesIn { get; set; }
+
+    public long BytesOut { get; set; }
 }

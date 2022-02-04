@@ -1,9 +1,8 @@
-﻿namespace Localtunnel.Http
+﻿namespace Localtunnel.Http;
+
+internal enum HttpParserState : byte
 {
-    internal enum HttpParserState : byte
-    {
-        RequestLine,
-        Headers,
-        Body,
-    }
+    RequestLine,
+    Headers,
+    Body,
 }
