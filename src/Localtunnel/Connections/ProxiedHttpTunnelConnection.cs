@@ -2,20 +2,19 @@
 {
     using System;
     using System.Buffers;
-    using System.Collections.Specialized;
     using System.IO;
-    using System.Net.Http;
     using System.Net.Sockets;
+    using System.Threading;
     using Localtunnel.Http;
 
     public class ProxiedHttpTunnelConnection : TunnelConnection
     {
         private readonly byte[] _receiveBuffer;
         private bool _disposed;
-        private bool _httpInformationParsed;
         private Socket? _proxySocket;
         private Stream? _proxyStream;
         private ConnectionStatistics _statistics;
+        private int _synchronousStackDepth;
 
         public ProxiedHttpTunnelConnection(TunnelConnectionHandle handle, ProxiedHttpTunnelOptions options)
             : base(handle)
@@ -25,13 +24,9 @@
             BaseUri = GetBaseUri();
         }
 
-        public Uri BaseUri { get; }
-
         public ProxiedHttpTunnelOptions Options { get; }
-
-        public HttpRequestMessage? HttpRequest { get; private set; }
-
-        public NameValueCollection? ContentHeaders { get; private set; }
+        public Uri BaseUri { get; }
+        public HttpRequest? HttpRequest => _httpConnectionContext?.HttpRequest;
 
         public ConnectionStatistics Statistics => _statistics;
 
@@ -45,16 +40,24 @@
         }
 
         /// <inheritdoc/>
-        protected internal override bool Process(ArrayPool<byte> arrayPool, ArraySegment<byte> data)
+        protected internal override bool Process(ArrayPool<byte>? arrayPool, ArraySegment<byte> data)
         {
-            if (!_httpInformationParsed && Options.RequestProcessor is not null)
+            try
             {
-                _httpInformationParsed = true;
-                ProcessRequest(ref data);
-            }
+                var memory = data.AsMemory();
 
-            _statistics.BytesIn += data.Count;
-            _proxyStream!.Write(data);
+                if (Options.RequestProcessor is not null)
+                {
+                    ProcessRequest(ref memory);
+                }
+
+                _statistics.BytesIn += memory.Length;
+                _proxyStream!.Write(memory.Span);
+            }
+            finally
+            {
+                arrayPool?.Return(data.Array!);
+            }
 
             return true;
         }
@@ -104,37 +107,19 @@
                 state: this);
         }
 
-        private void ProcessRequest(ref ArraySegment<byte> data)
+        private void ProcessRequest(ref Memory<byte> data)
         {
-            var requestBuffer = data.Array!;
-            var requestBody = (ReadOnlySpan<byte>)data;
+            _httpConnectionContext ??= new HttpTunnelConnectionContext(this);
 
-            var ret = RequestReader.Parse(ref requestBody, BaseUri)!;
-            HttpRequest = ret.Item1;
-            ContentHeaders = ret.Item2;
-
-            Options.RequestProcessor!.Process(this, HttpRequest);
-
-            var pooledBuffer = Tunnel.ArrayPool.Rent(data.Count + 8096);
-
-            // write request back
-            int requestLength;
-            using (var memoryStream = new MemoryStream(pooledBuffer))
+            if (!_httpConnectionContext.ProcessData(data))
             {
-                using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
-                {
-                    RequestWriter.WriteRequest(streamWriter, HttpRequest, requestBody.Length, ContentHeaders);
-                }
-
-                requestLength = (int)memoryStream.Position;
+                return;
             }
 
-            requestBody.CopyTo(pooledBuffer.AsSpan(requestLength));
-            data = new(pooledBuffer, 0, requestLength + requestBody.Length);
+            data = _httpConnectionContext.Buffer.ToArray();
 
-            // return current buffer
-            Tunnel.ArrayPool.Return(requestBuffer);
         }
+        private HttpTunnelConnectionContext _httpConnectionContext = null;
 
         private void ReceiveCallbackInternal(IAsyncResult asyncResult)
         {
@@ -156,7 +141,24 @@
 
                 _statistics.BytesOut += length;
                 Socket?.Send(_receiveBuffer, 0, length, SocketFlags.None);
-                BeginRead();
+
+                if (!asyncResult.CompletedSynchronously)
+                {
+                    _synchronousStackDepth = 0;
+                    BeginRead();
+                }
+                else if (_synchronousStackDepth++ > 100)
+                {
+                    ThreadPool.QueueUserWorkItem(
+                        callBack: static state => ((ProxiedHttpTunnelConnection)state!).BeginRead(),
+                        state: this);
+
+                    _synchronousStackDepth = 0;
+                }
+                else
+                {
+                    BeginRead();
+                }
             }
             catch (Exception)
             {
