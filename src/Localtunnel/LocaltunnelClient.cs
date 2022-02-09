@@ -5,14 +5,14 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Localtunnel.Connections;
+using Localtunnel.Handlers;
 using Localtunnel.Properties;
 using Localtunnel.Tunnels;
 using Microsoft.Extensions.Logging;
 
 public sealed class LocaltunnelClient : IDisposable
 {
-    public static readonly Uri DefaultBaseAddress = new("https://localtunnel.me/");
+    public static readonly Uri DefaultBaseAddress = new("http://localtunnel.me/"); // TODO https
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<LocaltunnelClient>? _logger;
@@ -36,12 +36,13 @@ public sealed class LocaltunnelClient : IDisposable
     /// <inheritdoc/>
     public void Dispose() => _httpClient.Dispose();
 
-    public async Task<Tunnel> OpenAsync(Func<TunnelConnectionHandle, TunnelConnection> connectionFactory, string? subdomain = null, CancellationToken cancellationToken = default)
+    public async Task<Tunnel> OpenAsync(ITunnelConnectionHandler tunnelConnectionHandler, string? subdomain = null, TunnelTraceListener? tunnelTraceListener = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        tunnelTraceListener ??= NullTunnelTraceListener.Instance;
 
         var tunnel = await OpenAsync(subdomain, cancellationToken);
-        return new Tunnel(tunnel, connectionFactory, arrayPool: null, _logger);
+        return new Tunnel(tunnel, tunnelConnectionHandler, tunnelTraceListener, _logger);
     }
 
     public async Task<TunnelInformation> OpenAsync(string? subdomain = null, CancellationToken cancellationToken = default)
@@ -53,7 +54,10 @@ public sealed class LocaltunnelClient : IDisposable
         var requestUri = subdomain is null ? "/?new" : string.Concat('/', subdomain);
         _logger?.LogTrace(Resources.SendingHttpGet, requestUri);
 
-        var response = (await _httpClient.GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken))!;
+        var response = (await _httpClient
+            .GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken)
+            .ConfigureAwait(false))!;
+
         _logger?.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
 
         return response;

@@ -3,21 +3,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Localtunnel.Cli.Configuration;
-using Localtunnel.Connections;
-using Localtunnel.Http;
 using Localtunnel.Properties;
+using Localtunnel.Tracing;
 using Localtunnel.Tunnels;
 
 internal static class TunnelDashboard
 {
-    public static async Task Show(Tunnel tunnel, BaseConfiguration configuration, CancellationToken cancellationToken = default)
+    public static async Task Show(Tunnel tunnel, HistoryTraceListener historyTraceListener, CancellationToken cancellationToken = default)
     {
-        var connectionHistory = new Stack<TunnelConnection>();
         var stringBuilder = new StringBuilder();
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         var startTime = DateTimeOffset.UtcNow;
@@ -38,7 +36,7 @@ internal static class TunnelDashboard
             }
 
             Update(tunnel, stringBuilder, startTime);
-            UpdateConnections(tunnel, connectionHistory);
+            UpdateConnections(tunnel, historyTraceListener.Entries);
             await Task.Delay(100, CancellationToken.None);
         }
 
@@ -67,9 +65,9 @@ internal static class TunnelDashboard
                FormatDatePart(time.Seconds, Resources.Second, Resources.Seconds) + " ";
     }
 
-    private static string GetIssuer(HttpRequest? request)
+    private static string GetIssuer(HttpRequestMessage? request)
     {
-        if (request is not null && request.Value.Headers.TryGetValue("x-real-ip", out var ip))
+        if (request is not null && request.Headers.TryGetValues("x-real-ip", out var ip))
         {
             return ip.FirstOrDefault() ?? Resources.WaitingForRequest;
         }
@@ -91,7 +89,7 @@ internal static class TunnelDashboard
     {
         stringBuilder.Clear();
 
-        var connections = tunnel.Connections.Count();
+        var connections = 0; // TODO
         var elapsed = DateTimeOffset.UtcNow - startTime;
 
         stringBuilder.AppendFullLine($"  {Resources.TunnelId,-32} {tunnel.Information.Id}");
@@ -105,21 +103,16 @@ internal static class TunnelDashboard
         Console.Write(stringBuilder);
     }
 
-    private static void UpdateConnections(Tunnel tunnel, Stack<TunnelConnection> connectionHistory)
+    private static void UpdateConnections(Tunnel tunnel, IEnumerable<RequestTraceEntry> connectionHistory)
     {
-        var connections = connectionHistory.Count;
-
-        foreach (var connection in tunnel.Connections)
+        static string FormatByteSize(double value)
         {
-            if (!connectionHistory.Contains(connection))
+            if (value > 1024F * 1024F)
             {
-                if (connections >= 5)
-                {
-                    connectionHistory.TryPop(out _);
-                }
-
-                connectionHistory.Push(connection);
+                return $"{value / 1024F / 1024F:0.0} MiB";
             }
+
+            return $"{value / 1024F:0.0} KiB";
         }
 
         Console.WriteLine();
@@ -127,33 +120,28 @@ internal static class TunnelDashboard
 
         foreach (var connection in connectionHistory)
         {
-            var httpConnection = connection as ProxiedHttpTunnelConnection;
-            var requestMessage = httpConnection?.HttpRequest;
+            var requestMessage = connection.RequestMessage;
 
-            var bytesIn = httpConnection?.Statistics.BytesIn / 1024F;
-            var bytesOut = httpConnection?.Statistics.BytesOut / 1024F;
-            var stats = $"({bytesOut:0.0} KiB {Resources.Out}, {bytesIn:0.0} KiB {Resources.In})";
+            var statistics = connection.Statistics;
+            var stats = $"({FormatByteSize(statistics.BytesOut)} {Resources.Out}, {FormatByteSize(statistics.BytesIn)} {Resources.In})";
 
-            var isEstablishing = httpConnection is not null
-                && httpConnection.Statistics.BytesOut is 0
-                && httpConnection.Statistics.BytesIn is 0;
-
-            var requestUri = requestMessage?.PathAndQuery?.ToString() ?? "???";
+            var isEstablishing = connection.RequestMessage is not null && !connection.IsCompleted;
+            var requestUri = requestMessage?.RequestUri?.PathAndQuery?.ToString() ?? "???";
 
             if (requestUri.Length > 50)
             {
                 requestUri = requestUri[..47] + "...";
             }
 
-            var pipe = connection.IsDisposed ? "-X->" : "--->";
+            var pipe = connection.IsCompleted ? "-X->" : "--->";
 
             var color = isEstablishing
                 ? ConsoleColor.Blue
-                : connection.IsDisposed
+                : connection.IsCompleted
                 ? ConsoleColor.DarkGray
                 : ConsoleColor.Green;
 
-            var indicator = isEstablishing ? 'E' : connection.IsDisposed ? 'C' : 'O';
+            var indicator = isEstablishing ? 'E' : connection.IsCompleted ? 'C' : 'O';
             var status = $"     [{indicator}] {GetIssuer(requestMessage)} {pipe} {requestUri} {stats}";
 
             Console.ForegroundColor = color;

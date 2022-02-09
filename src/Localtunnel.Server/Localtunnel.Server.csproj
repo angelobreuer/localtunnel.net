@@ -12,12 +12,9 @@
 	<DockerfileTag>localtunnel-server</DockerfileTag>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" Exists('appsettings.json') ">
     <Content Remove="appsettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="appsettings.json">
+    <None Include="appsettings.json" >
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

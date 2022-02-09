@@ -5,7 +5,7 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using Localtunnel.Cli.Configuration;
-using Localtunnel.Connections;
+using Localtunnel.Endpoints.Http;
 using Localtunnel.Properties;
 
 internal sealed class HttpsCliCommand : Command
@@ -13,6 +13,7 @@ internal sealed class HttpsCliCommand : Command
     public HttpsCliCommand()
         : base("https", Resources.HttpsProxy)
     {
+        // TODO
         Add(new Option<bool>(
             alias: "--allow-untrusted-certificates",
             description: Resources.AllowUntrustedCertificatesDescription));
@@ -22,19 +23,9 @@ internal sealed class HttpsCliCommand : Command
 
     private Task RunAsync(HttpsProxyConfiguration configuration, CancellationToken cancellationToken)
     {
-        var options = new ProxiedSslTunnelOptions
-        {
-            Host = configuration.Host!,
-            ReceiveBufferSize = configuration.ReceiveBufferSize,
-            Port = configuration.Port,
-            AllowUntrustedCertificates = configuration.AllowUntrustedCertificates,
-        };
-
-        if (configuration.Passthrough)
-        {
-            options.RequestProcessor = null;
-        }
-
-        return CliBootstrapper.RunAsync(configuration, x => new ProxiedSslTunnelConnection(x, options), cancellationToken);
+        return CliBootstrapper.RunAsync(
+            configuration: configuration,
+            tunnelEndpointFactory: new HttpsTunnelEndpointFactory(configuration.Host ?? "localhost", configuration.Port),
+            cancellationToken: cancellationToken);
     }
 }

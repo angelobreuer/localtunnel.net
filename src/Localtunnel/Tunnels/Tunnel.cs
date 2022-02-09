@@ -1,36 +1,66 @@
 ﻿namespace Localtunnel.Tunnels;
 
 using System;
-using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Localtunnel.Connections;
+using Localtunnel.Handlers;
 using Localtunnel.Properties;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 public class Tunnel : IDisposable
 {
-    private readonly TunnelSocketContext[] _socketContexts;
+    private readonly ITunnelConnectionHandler _tunnelConnectionHandler;
+    private readonly TunnelTraceListener _tunnelTraceListener;
+    private readonly TunnelSocketConnectionContext[] _socketContexts;
+    private readonly TunnelLifetime _tunnelLifetime;
+    private readonly ConcurrentDictionary<ITunnelConnectionContext, bool> _connections;
 
-    public Tunnel(TunnelInformation information, Func<TunnelConnectionHandle, TunnelConnection> connectionFactory, ArrayPool<byte>? arrayPool = null, ILogger? logger = null)
+    public Tunnel(
+        TunnelInformation information,
+        ITunnelConnectionHandler tunnelConnectionHandler,
+        TunnelTraceListener tunnelTraceListener,
+        ILogger? logger = null)
     {
-        Information = information ?? throw new ArgumentNullException(nameof(information));
-        ConnectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-        ArrayPool = arrayPool ?? ArrayPool<byte>.Shared;
+        Information = information;
         Logger = logger;
 
-        _socketContexts = new TunnelSocketContext[Information.MaximumConnections];
+        _connections = new ConcurrentDictionary<ITunnelConnectionContext, bool>();
+        _tunnelConnectionHandler = tunnelConnectionHandler;
+        _tunnelTraceListener = tunnelTraceListener;
+        _tunnelLifetime = new TunnelLifetime();
+        _socketContexts = new TunnelSocketConnectionContext[10];
     }
 
-    public IEnumerable<TunnelConnection> Connections => _socketContexts.Select(x => x?.Connection).Where(x => x is not null)!;
+    public IEnumerable<ITunnelConnectionContext> Connnections => _connections.Keys;
+
+    internal async ValueTask AcceptSocketAsync(Socket socket, CancellationToken cancellationToken = default)
+    {
+        var tunnelConnectionContext = await _tunnelConnectionHandler
+            .AcceptConnectionAsync(socket, _tunnelTraceListener, cancellationToken)
+            .ConfigureAwait(false);
+
+        _connections.TryAdd(tunnelConnectionContext, false);
+
+        try
+        {
+            await tunnelConnectionContext
+                .RunAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            _connections.TryRemove(tunnelConnectionContext, out _);
+        }
+    }
 
     public TunnelInformation Information { get; }
-
-    protected internal ArrayPool<byte> ArrayPool { get; }
-
-    protected internal Func<TunnelConnectionHandle, TunnelConnection> ConnectionFactory { get; }
 
     protected internal ILogger? Logger { get; }
 
@@ -48,27 +78,18 @@ public class Tunnel : IDisposable
                 ?? throw new Exception(string.Format(Resources.DnsResolutionFailed, Information.Url.DnsSafeHost));
         }
 
+        await _tunnelConnectionHandler.StartAsync(); // TODO
+
         var endPoint = new IPEndPoint(ipAddress, Information.Port);
 
         for (var index = 0; index < Math.Min(connections, Information.MaximumConnections); index++)
         {
-            _socketContexts[index] = new TunnelSocketContext(this, endPoint, $"SocketContext-" + index);
-            _socketContexts[index].BeginConnect();
+            _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, NullLogger<TunnelSocketConnectionContext>.Instance); // TODO logger
         }
     }
 
     public void Stop()
     {
-        for (var index = 0; index < _socketContexts.Length; index++)
-        {
-            var context = _socketContexts[index];
-
-            if (context is null)
-            {
-                continue;
-            }
-
-            context.Dispose();
-        }
+        _tunnelLifetime.Stop();
     }
 }

@@ -5,27 +5,23 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Localtunnel.Cli.Configuration;
-using Localtunnel.Connections;
+using Localtunnel.Endpoints;
+using Localtunnel.Handlers;
+using Localtunnel.Handlers.Kestrel;
+using Localtunnel.Handlers.Passthrough;
+using Localtunnel.Processors;
 using Localtunnel.Properties;
+using Localtunnel.Tracing;
 using Localtunnel.Tunnels;
 using Microsoft.Extensions.Logging;
 
 internal sealed class CliBootstrapper
 {
+    // Static classes would not be allowed to use as a type param
     private CliBootstrapper() => throw new InvalidOperationException();
 
-    public static async Task RunAsync(BaseConfiguration configuration, Func<TunnelConnectionHandle, TunnelConnection> connectionFactory, CancellationToken cancellationToken)
+    public static async Task RunAsync(BaseConfiguration configuration, ITunnelEndpointFactory tunnelEndpointFactory, CancellationToken cancellationToken)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
-
-        if (connectionFactory is null)
-        {
-            throw new ArgumentNullException(nameof(connectionFactory));
-        }
-
         using var loggerFactory = LoggerFactory.Create(x => x
             .AddConsole()
             .SetMinimumLevel(configuration.Verbose ? LogLevel.Trace : LogLevel.Information));
@@ -36,7 +32,26 @@ internal sealed class CliBootstrapper
         var connections = Math.Min(10, configuration.MaxConnections);
         clientLogger.LogDebug(Resources.CreatingTunnelWithNConnections, connections);
 
-        using var tunnel = await client.OpenAsync(connectionFactory, configuration.Subdomain, cancellationToken);
+        var tunnelTraceListener = new HistoryTraceListener();
+
+        ITunnelConnectionHandler tunnelConnectionHandler;
+        if (configuration.Passthrough)
+        {
+            tunnelConnectionHandler = new PassthroughTunnelConnectionHandler(tunnelEndpointFactory);
+        }
+        else
+        {
+            var pipeline = new HttpRequestProcessingPipelineBuilder()
+                .Append(new HttpHostHeaderRewritingRequestProcessor(configuration.Host!))
+                .Build();
+
+            tunnelConnectionHandler = new KestrelTunnelConnectionHandler(pipeline, tunnelEndpointFactory);
+        }
+
+        using var tunnel = await client
+            .OpenAsync(tunnelConnectionHandler, configuration.Subdomain, tunnelTraceListener, cancellationToken)
+            .ConfigureAwait(false);
+
         await tunnel.StartAsync(connections);
 
         if (configuration.Browser)
@@ -53,7 +68,7 @@ internal sealed class CliBootstrapper
         }
         else
         {
-            await TunnelDashboard.Show(tunnel, configuration, cancellationToken);
+            await TunnelDashboard.Show(tunnel, tunnelTraceListener, cancellationToken);
         }
 
         clientLogger.LogInformation(Resources.ShuttingDown);
