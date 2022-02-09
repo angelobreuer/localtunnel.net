@@ -16,18 +16,23 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 public class Tunnel : IDisposable
 {
+    private readonly LocaltunnelClient? _client;
     private readonly ITunnelConnectionHandler _tunnelConnectionHandler;
     private readonly TunnelTraceListener _tunnelTraceListener;
     private readonly TunnelSocketConnectionContext[] _socketContexts;
     private readonly TunnelLifetime _tunnelLifetime;
     private readonly ConcurrentDictionary<ITunnelConnectionContext, bool> _connections;
+    private bool _running;
+    private bool _disposed;
 
     public Tunnel(
+        LocaltunnelClient? client,
         TunnelInformation information,
         ITunnelConnectionHandler tunnelConnectionHandler,
         TunnelTraceListener tunnelTraceListener,
         ILogger? logger = null)
     {
+        _client = client;
         Information = information;
         Logger = logger;
 
@@ -36,9 +41,11 @@ public class Tunnel : IDisposable
         _tunnelTraceListener = tunnelTraceListener;
         _tunnelLifetime = new TunnelLifetime();
         _socketContexts = new TunnelSocketConnectionContext[10];
+
+        _client?.TryRegister(this);
     }
 
-    public IEnumerable<ITunnelConnectionContext> Connnections => _connections.Keys;
+    public IEnumerable<ITunnelConnectionContext> Connections => _connections.Keys;
 
     internal async ValueTask AcceptSocketAsync(Socket socket, CancellationToken cancellationToken = default)
     {
@@ -64,32 +71,77 @@ public class Tunnel : IDisposable
 
     protected internal ILogger? Logger { get; }
 
-    /// <inheritdoc/>
-    public void Dispose() => Stop();
-
-    public async Task StartAsync(int connections = 10)
+    public async ValueTask StartAsync(int connections = 10, CancellationToken cancellationToken = default)
     {
-        // perform DNS resolution once
-        if (!IPAddress.TryParse(Information.Url.Host, out var ipAddress))
+        if (_running)
         {
-            var ipHostEntry = await Dns.GetHostEntryAsync(Information.Url.DnsSafeHost);
-
-            ipAddress = ipHostEntry.AddressList.FirstOrDefault()
-                ?? throw new Exception(string.Format(Resources.DnsResolutionFailed, Information.Url.DnsSafeHost));
+            return;
         }
 
-        await _tunnelConnectionHandler.StartAsync(); // TODO
+        _running = true;
 
-        var endPoint = new IPEndPoint(ipAddress, Information.Port);
-
-        for (var index = 0; index < Math.Min(connections, Information.MaximumConnections); index++)
+        try
         {
-            _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, NullLogger<TunnelSocketConnectionContext>.Instance); // TODO logger
+            _client?.TryRegister(this);
+
+            // perform DNS resolution once
+            if (!IPAddress.TryParse(Information.Url.Host, out var ipAddress))
+            {
+                var ipHostEntry = await Dns.GetHostEntryAsync(Information.Url.DnsSafeHost);
+
+                ipAddress = ipHostEntry.AddressList.FirstOrDefault()
+                    ?? throw new Exception(string.Format(Resources.DnsResolutionFailed, Information.Url.DnsSafeHost));
+            }
+
+            await _tunnelConnectionHandler
+                .StartAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var endPoint = new IPEndPoint(ipAddress, Information.Port);
+
+            for (var index = 0; index < Math.Min(connections, Information.MaximumConnections); index++)
+            {
+                _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, NullLogger<TunnelSocketConnectionContext>.Instance); // TODO logger
+            }
+        }
+        catch
+        {
+            _running = false;
+            throw;
         }
     }
 
     public void Stop()
     {
+        if (!_running)
+        {
+            return;
+        }
+
+        _running = false;
         _tunnelLifetime.Stop();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            _client?.TryUnregister(this);
+            Stop();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

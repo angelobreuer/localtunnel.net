@@ -1,6 +1,8 @@
 ﻿namespace Localtunnel;
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -16,6 +18,7 @@ public sealed class LocaltunnelClient : IDisposable
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<LocaltunnelClient>? _logger;
+    private ConcurrentDictionary<Tunnel, bool> _tunnels;
 
     public LocaltunnelClient(ILogger<LocaltunnelClient>? logger = null)
         : this(DefaultBaseAddress, logger)
@@ -33,6 +36,8 @@ public sealed class LocaltunnelClient : IDisposable
         _logger = logger;
     }
 
+    public IEnumerable<Tunnel> Tunnels => _tunnels.Keys;
+
     /// <inheritdoc/>
     public void Dispose() => _httpClient.Dispose();
 
@@ -42,7 +47,7 @@ public sealed class LocaltunnelClient : IDisposable
         tunnelTraceListener ??= NullTunnelTraceListener.Instance;
 
         var tunnel = await OpenAsync(subdomain, cancellationToken);
-        return new Tunnel(tunnel, tunnelConnectionHandler, tunnelTraceListener, _logger);
+        return new Tunnel(this, tunnel, tunnelConnectionHandler, tunnelTraceListener, _logger);
     }
 
     public async Task<TunnelInformation> OpenAsync(string? subdomain = null, CancellationToken cancellationToken = default)
@@ -61,5 +66,15 @@ public sealed class LocaltunnelClient : IDisposable
         _logger?.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
 
         return response;
+    }
+
+    internal bool TryRegister(Tunnel tunnel)
+    {
+        return _tunnels.TryAdd(tunnel, false);
+    }
+
+    internal bool TryUnregister(Tunnel tunnel)
+    {
+        return _tunnels.TryRemove(tunnel, out _);
     }
 }
