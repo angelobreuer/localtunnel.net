@@ -1,6 +1,7 @@
 ﻿namespace Localtunnel.Tracing;
 
 using System;
+using System.IO;
 using Localtunnel.Handlers;
 using Localtunnel.Tunnels;
 
@@ -29,33 +30,37 @@ public readonly struct TunnelConnectionTraceContext
         TraceListener.OnConnectionCompleted(traceContext: this);
     }
 
-    public void OnHttpRequestStarted()
+    public void OnHttpRequestStarted(ref Stream bodyReader)
     {
         TraceListener.OnHttpRequestStarted(
             traceContext: this,
-            requestMessage: ConnectionContext.RequestMessage!);
+            requestMessage: ConnectionContext.RequestMessage!,
+            bodyReader: ref bodyReader);
     }
 
-    public void OnHttpRequestCompleted()
+    public void OnHttpRequestCompleted(Stream bodyReader)
     {
         TraceListener.OnHttpRequestCompleted(
             traceContext: this,
-            requestMessage: ConnectionContext.RequestMessage!);
+            requestMessage: ConnectionContext.RequestMessage!,
+            bodyReader: bodyReader);
     }
 
-    public void OnHttpResponseStarted()
+    public void OnHttpResponseStarted(ref Stream bodyWriter)
     {
         TraceListener.OnHttpResponseStarted(
             traceContext: this,
             requestMessage: ConnectionContext.RequestMessage!,
-            responseMessage: ConnectionContext.ResponseMessage!);
+            responseMessage: ConnectionContext.ResponseMessage!,
+            bodyWriter: ref bodyWriter);
     }
 
-    public void OnHttpResponseCompleted()
+    public void OnHttpResponseCompleted(Stream bodyWriter)
     {
-        TraceListener.OnHttpResponseStarted(
+        TraceListener.OnHttpResponseCompleted(
             traceContext: this,
             requestMessage: ConnectionContext.RequestMessage!,
-            responseMessage: ConnectionContext.ResponseMessage!);
+            responseMessage: ConnectionContext.ResponseMessage!,
+            bodyWriter: bodyWriter);
     }
 }

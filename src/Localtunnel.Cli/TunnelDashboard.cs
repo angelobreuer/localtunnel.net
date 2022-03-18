@@ -103,7 +103,7 @@ internal static class TunnelDashboard
         Console.Write(stringBuilder);
     }
 
-    private static void UpdateConnections(Tunnel tunnel, IEnumerable<RequestTraceEntry> connectionHistory)
+    private static void UpdateConnections(Tunnel tunnel, IEnumerable<HttpTransactionEntry> connectionHistory)
     {
         static string FormatByteSize(double value)
         {

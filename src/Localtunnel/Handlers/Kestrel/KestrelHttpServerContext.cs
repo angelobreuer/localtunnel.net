@@ -126,7 +126,16 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
         }
 
         tunnelConnectionContext.RequestMessage = requestMessage;
-        traceContext.OnHttpRequestStarted();
+
+        var originalBodyReader = statisticsStream;
+        var bodyReader = (Stream)originalBodyReader;
+        traceContext.OnHttpRequestStarted(ref bodyReader);
+
+        if (!ReferenceEquals(bodyReader, originalBodyReader))
+        {
+            // body writer changed, replace stream
+            requestMessage.Content = new StreamContent(bodyReader);
+        }
 
         // send request
         using var responseMessage = await _httpClient
@@ -135,8 +144,11 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
 
         tunnelConnectionContext.ResponseMessage = responseMessage;
 
-        traceContext.OnHttpRequestCompleted();
-        traceContext.OnHttpResponseStarted();
+        traceContext.OnHttpRequestCompleted(bodyReader);
+
+        var bodyWriter = (Stream)originalBodyReader;
+
+        traceContext.OnHttpResponseStarted(ref bodyWriter);
 
         // copy headers to response
         foreach (var (header, value) in responseMessage.Headers)
@@ -154,10 +166,10 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
 
         // copy body
         await responseMessage.Content
-            .CopyToAsync(statisticsStream, cancellationToken)
+            .CopyToAsync(bodyWriter, cancellationToken)
             .ConfigureAwait(false);
 
-        traceContext.OnHttpRequestCompleted();
+        traceContext.OnHttpResponseCompleted(bodyWriter);
     }
 
     private static HttpMethod GetHttpMethodCachedOrCreate(string httpMethod) => httpMethod.ToUpperInvariant() switch

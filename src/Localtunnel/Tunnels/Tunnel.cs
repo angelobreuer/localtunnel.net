@@ -18,7 +18,6 @@ public class Tunnel : IDisposable
 {
     private readonly LocaltunnelClient? _client;
     private readonly ITunnelConnectionHandler _tunnelConnectionHandler;
-    private readonly TunnelTraceListener _tunnelTraceListener;
     private readonly TunnelSocketConnectionContext[] _socketContexts;
     private readonly TunnelLifetime _tunnelLifetime;
     private readonly ConcurrentDictionary<ITunnelConnectionContext, bool> _connections;
@@ -35,10 +34,10 @@ public class Tunnel : IDisposable
         _client = client;
         Information = information;
         Logger = logger;
+        TunnelTraceListener = tunnelTraceListener;
 
         _connections = new ConcurrentDictionary<ITunnelConnectionContext, bool>();
         _tunnelConnectionHandler = tunnelConnectionHandler;
-        _tunnelTraceListener = tunnelTraceListener;
         _tunnelLifetime = new TunnelLifetime();
         _socketContexts = new TunnelSocketConnectionContext[10];
 
@@ -50,7 +49,7 @@ public class Tunnel : IDisposable
     internal async ValueTask AcceptSocketAsync(Socket socket, CancellationToken cancellationToken = default)
     {
         var tunnelConnectionContext = await _tunnelConnectionHandler
-            .AcceptConnectionAsync(socket, _tunnelTraceListener, cancellationToken)
+            .AcceptConnectionAsync(socket, TunnelTraceListener, cancellationToken)
             .ConfigureAwait(false);
 
         _connections.TryAdd(tunnelConnectionContext, false);
@@ -70,6 +69,8 @@ public class Tunnel : IDisposable
     public TunnelInformation Information { get; }
 
     protected internal ILogger? Logger { get; }
+
+    protected internal TunnelTraceListener TunnelTraceListener { get; }
 
     public async ValueTask StartAsync(int connections = 10, CancellationToken cancellationToken = default)
     {

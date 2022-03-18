@@ -18,7 +18,7 @@ public sealed class LocaltunnelClient : IDisposable
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<LocaltunnelClient>? _logger;
-    private ConcurrentDictionary<Tunnel, bool> _tunnels;
+    private readonly ConcurrentDictionary<Tunnel, bool> _tunnels;
 
     public LocaltunnelClient(ILogger<LocaltunnelClient>? logger = null)
         : this(DefaultBaseAddress, logger)
@@ -32,6 +32,7 @@ public sealed class LocaltunnelClient : IDisposable
             throw new ArgumentNullException(nameof(baseAddress));
         }
 
+        _tunnels = new ConcurrentDictionary<Tunnel, bool>();
         _httpClient = new() { BaseAddress = baseAddress };
         _logger = logger;
     }
