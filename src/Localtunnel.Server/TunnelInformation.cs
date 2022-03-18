@@ -53,7 +53,7 @@ internal sealed class TunnelInformation : IDisposable
 
     public int MaximumConnections { get; } = 10;
 
-    public async ValueTask HandleHttpConnection(HttpRequest httpRequest, HttpResponse httpResponse, CancellationToken cancellationToken = default)
+    public async ValueTask HandleHttpConnectionAsync(HttpRequest httpRequest, HttpResponse httpResponse, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

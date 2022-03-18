@@ -1,4 +1,5 @@
 ﻿namespace Localtunnel.Server;
+
 internal sealed class TunnelRequestHandler
 {
     private readonly ITunnelDnsProvider _tunnelDnsProvider;
@@ -87,7 +88,7 @@ internal sealed class TunnelRequestHandler
         }
 
         await tunnelInformation
-            .HandleHttpConnection(httpContext.Request, httpContext.Response, httpContext.RequestAborted)
+            .HandleHttpConnectionAsync(httpContext.Request, httpContext.Response, httpContext.RequestAborted)
             .ConfigureAwait(false);
 
         return true;
