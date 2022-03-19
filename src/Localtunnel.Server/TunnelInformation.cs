@@ -179,6 +179,11 @@ internal sealed class TunnelInformation : IDisposable
 
     private async ValueTask<Stream> CreateStreamAsync(SocketsHttpConnectionContext socketsHttpConnectionContext, CancellationToken cancellationToken = default)
     {
+        static bool PollDisconnected(Socket socket)
+        {
+            return socket.Poll(1000, SelectMode.SelectRead) && socket.Available is 0;
+        }
+
         void NotifySocketCleanedUpInternal(object? state)
         {
             var instance = (Socket)state!;
@@ -190,6 +195,15 @@ internal sealed class TunnelInformation : IDisposable
         var socket = await _connectionQueue.Reader
             .ReadAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        while (PollDisconnected(socket))
+        {
+            socket.Dispose();
+
+            socket = await _connectionQueue.Reader
+                .ReadAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         var networkStream = new NetworkStream(socket, true);
 
