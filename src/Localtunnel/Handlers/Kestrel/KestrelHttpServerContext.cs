@@ -139,9 +139,13 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
             requestMessage.Content = new StreamContent(bodyReader);
         }
 
+        var completionOption = isUpgradeConnection
+            ? HttpCompletionOption.ResponseHeadersRead
+            : HttpCompletionOption.ResponseContentRead;
+
         // send request
         using var responseMessage = await _httpClient
-            .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .SendAsync(requestMessage, completionOption, cancellationToken)
             .ConfigureAwait(false);
 
         tunnelConnectionContext.ResponseMessage = responseMessage;
