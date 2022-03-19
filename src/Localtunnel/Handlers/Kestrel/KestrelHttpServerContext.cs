@@ -98,6 +98,7 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var isUpgradeConnection = httpContext.Request.Headers.Upgrade.Count > 0;
         var tunnelConnectionContext = (KestrelTunnelConnectionContext)traceContext.ConnectionContext;
 
         using var statisticsStream = new StatisticsStream(
@@ -105,7 +106,9 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
             responseStream: httpContext.Response.Body,
             connectionContext: tunnelConnectionContext);
 
-        using var httpContent = new StreamContent(statisticsStream);
+        using var httpContent = isUpgradeConnection
+            ? null // Do not forward body for upgrade connections
+            : new StreamContent(statisticsStream);
 
         var requestMessage = new HttpRequestMessage
         {
@@ -114,14 +117,13 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
             RequestUri = new Uri(httpContext.Request.GetEncodedUrl()),
         };
 
-        // copy headers
         foreach (var (header, value) in httpContext.Request.Headers)
         {
             var values = value.ToString();
 
-            if (!requestMessage.Headers.TryAddWithoutValidation(header, values))
+            if (!requestMessage.Headers.TryAddWithoutValidation(header, values) && !isUpgradeConnection)
             {
-                httpContent.Headers.TryAddWithoutValidation(header, values);
+                httpContent!.Headers.TryAddWithoutValidation(header, values);
             }
         }
 
@@ -131,7 +133,7 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
         var bodyReader = (Stream)originalBodyReader;
         traceContext.OnHttpRequestStarted(ref bodyReader);
 
-        if (!ReferenceEquals(bodyReader, originalBodyReader))
+        if (!ReferenceEquals(bodyReader, originalBodyReader) && !isUpgradeConnection)
         {
             // body writer changed, replace stream
             requestMessage.Content = new StreamContent(bodyReader);
@@ -139,7 +141,7 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
 
         // send request
         using var responseMessage = await _httpClient
-            .SendAsync(requestMessage, cancellationToken)
+            .SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         tunnelConnectionContext.ResponseMessage = responseMessage;
@@ -165,8 +167,26 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
         httpContext.Response.StatusCode = (int)responseMessage.StatusCode;
 
         // copy body
-        await responseMessage.Content
-            .CopyToAsync(bodyWriter, cancellationToken)
+        if (!isUpgradeConnection)
+        {
+            await responseMessage.Content
+                .CopyToAsync(bodyWriter, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            var upgradeConnectionFeature = httpContext.Features.Get<IHttpUpgradeFeature>()!;
+            using var clientStream = await upgradeConnectionFeature.UpgradeAsync().ConfigureAwait(false);
+            using var serverStream = responseMessage.Content.ReadAsStream(cancellationToken);
+
+            var task1 = clientStream.CopyToAsync(serverStream, cancellationToken);
+            var task2 = serverStream.CopyToAsync(clientStream, cancellationToken);
+
+            await Task.WhenAll(task1, task2).ConfigureAwait(false);
+        }
+
+        await httpContext.Response
+            .CompleteAsync()
             .ConfigureAwait(false);
 
         traceContext.OnHttpResponseCompleted(bodyWriter);
