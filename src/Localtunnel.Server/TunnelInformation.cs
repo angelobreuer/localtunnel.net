@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Channels;
 using Localtunnel.Server.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
 
 internal sealed class TunnelInformation : IDisposable
@@ -57,7 +59,9 @@ internal sealed class TunnelInformation : IDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var httpContent = httpRequest.Body is not null
+        var isUpgradeRequest = httpRequest.Headers.Upgrade.Any();
+
+        using var httpContent = httpRequest.Body is not null && !isUpgradeRequest
             ? new StreamContent(httpRequest.Body)
             : null;
 
@@ -129,14 +133,39 @@ internal sealed class TunnelInformation : IDisposable
             {
                 httpResponse.Headers.TryAdd(key, new StringValues((string[])value!));
             }
+        }
 
-            await responseMessage.Content
-                .CopyToAsync(httpResponse.Body, cancellationToken)
-                .ConfigureAwait(false);
+        if (isUpgradeRequest)
+        {
+            await HandleUpgradeConnectionAsync(responseMessage, httpRequest, httpResponse, cancellationToken);
+        }
+        else if (responseMessage.Content is not null)
+        {
+            await HandleConnectionAsync(responseMessage, httpResponse, cancellationToken);
         }
 
         await httpResponse
             .CompleteAsync()
+            .ConfigureAwait(false);
+    }
+
+    private async Task HandleUpgradeConnectionAsync(HttpResponseMessage responseMessage, HttpRequest httpRequest, HttpResponse httpResponse, CancellationToken cancellationToken = default)
+    {
+        var upgradeFeature = httpRequest.HttpContext.Features.Get<IHttpUpgradeFeature>()!;
+
+        using var clientStream = responseMessage.Content.ReadAsStream(cancellationToken);
+        using var serverStream = await upgradeFeature.UpgradeAsync().ConfigureAwait(false);
+
+        var task1 = clientStream.CopyToAsync(serverStream, cancellationToken);
+        var task2 = serverStream.CopyToAsync(clientStream, cancellationToken);
+
+        await Task.WhenAll(task1, task2);
+    }
+
+    private async Task HandleConnectionAsync(HttpResponseMessage responseMessage, HttpResponse httpResponse, CancellationToken cancellationToken = default)
+    {
+        await responseMessage.Content
+            .CopyToAsync(httpResponse.Body, cancellationToken)
             .ConfigureAwait(false);
     }
 

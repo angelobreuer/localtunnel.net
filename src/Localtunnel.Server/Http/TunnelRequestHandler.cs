@@ -88,7 +88,7 @@ internal sealed class TunnelRequestHandler
         }
 
         await tunnelInformation
-            .HandleHttpConnectionAsync(httpContext.Request, httpContext.Response, httpContext.RequestAborted)
+            .HandleHttpConnectionAsync(httpContext.Request, httpContext.Response)
             .ConfigureAwait(false);
 
         return true;
