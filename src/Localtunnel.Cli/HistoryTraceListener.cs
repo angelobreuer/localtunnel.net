@@ -1,4 +1,5 @@
 ﻿namespace Localtunnel.Tracing;
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +44,6 @@ public sealed class HistoryTraceListener : TunnelTraceListener
     protected internal override void OnConnectionCompleted(TunnelConnectionTraceContext traceContext)
     {
         base.OnConnectionCompleted(traceContext);
-
         _associationMap.TryRemove(traceContext.ConnectionContext, out _);
     }
 
@@ -52,15 +52,9 @@ public sealed class HistoryTraceListener : TunnelTraceListener
     {
         base.OnHttpRequestStarted(traceContext, requestMessage, ref bodyReader);
 
-        if (!_associationMap.TryGetValue(traceContext.ConnectionContext, out var entry))
-        {
-            return;
-        }
+        var result = _associationMap.TryGetValue(traceContext.ConnectionContext, out var entry);
 
-        entry.SnapshotRecorder.RequestStream = bodyReader;
-        bodyReader = entry.SnapshotRecorder;
-
-        if (entry.RequestMessage is not null)
+        if (!result || entry.EndedAt is not null)
         {
             // new request
             entry = new HttpTransactionEntry(
@@ -73,6 +67,8 @@ public sealed class HistoryTraceListener : TunnelTraceListener
             _associationMap[traceContext.ConnectionContext] = entry;
         }
 
+        entry.SnapshotRecorder.RequestStream = bodyReader;
+        bodyReader = entry.SnapshotRecorder;
         entry.RequestMessage = requestMessage;
     }
 
@@ -109,7 +105,7 @@ public sealed class HistoryTraceListener : TunnelTraceListener
     {
         base.OnHttpResponseCompleted(traceContext, requestMessage, responseMessage, bodyWriter);
 
-        var result = _associationMap.TryRemove(traceContext.ConnectionContext, out var entry);
+        var result = _associationMap.TryGetValue(traceContext.ConnectionContext, out var entry);
         Debug.Assert(result && entry is not null);
 
         entry.SnapshotRecorder.Snapshot(out _, out var bodyOut);
