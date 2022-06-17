@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-
+	<RollForward>major</RollForward>
     <Description>Localtunnel implementation in .NET</Description>
     <Company>Angelo Breuer</Company>
-    <Version>1.0.3</Version>
-    <Copyright>Angelo Breuer 2021</Copyright>
+    <Version>1.0.4</Version>
+    <Copyright>Angelo Breuer 2022</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Angelo Breuer</Authors>
     <PackageProjectUrl>https://github.com/angelobreuer/localtunnel-client</PackageProjectUrl>

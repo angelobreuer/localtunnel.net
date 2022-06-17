@@ -3,14 +3,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+	<RollForward>major</RollForward>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>localtunnel</ToolCommandName>
     <Description>Localtunnel implementation in .NET</Description>
     <Company>Angelo Breuer</Company>
-    <Version>1.0.3</Version>
-    <Copyright>Angelo Breuer 2021</Copyright>
+    <Version>1.0.4</Version>
+    <Copyright>Angelo Breuer 2022</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
