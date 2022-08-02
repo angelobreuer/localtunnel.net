@@ -34,6 +34,7 @@ internal sealed class TunnelInformation : IDisposable
 
         var socketsHttpHandler = new SocketsHttpHandler
         {
+            AllowAutoRedirect = false,
             ConnectCallback = CreateStreamAsync,
             MaxConnectionsPerServer = 4,
             PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
