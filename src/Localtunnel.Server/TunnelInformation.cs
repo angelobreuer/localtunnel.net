@@ -20,8 +20,11 @@ internal sealed class TunnelInformation : IDisposable
     private readonly ConcurrentDictionary<Socket, Stream> _openSockets;
     private bool _disposed;
 
-    public TunnelInformation(TunnelId id, Socket serverSocket!!, TunnelService tunnelService!!)
+    public TunnelInformation(TunnelId id, Socket serverSocket, TunnelService tunnelService)
     {
+        ArgumentNullException.ThrowIfNull(serverSocket);
+        ArgumentNullException.ThrowIfNull(tunnelService);
+
         Id = id;
         ServerSocket = serverSocket;
         _tunnelService = tunnelService;

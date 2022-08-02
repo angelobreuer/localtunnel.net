@@ -9,8 +9,11 @@ internal sealed class TunnelService : ITunnelService
     private readonly IPortAllocationService _portAllocationService;
     private readonly ILogger<TunnelService> _logger;
 
-    public TunnelService(IPortAllocationService portAllocationService!!, ILogger<TunnelService> logger!!)
+    public TunnelService(IPortAllocationService portAllocationService, ILogger<TunnelService> logger)
     {
+        ArgumentNullException.ThrowIfNull(portAllocationService);
+        ArgumentNullException.ThrowIfNull(logger);
+
         _tunnel = new ConcurrentDictionary<TunnelId, TunnelInformation>();
         _portAllocationService = portAllocationService;
         _logger = logger;

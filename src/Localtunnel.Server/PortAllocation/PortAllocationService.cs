@@ -9,8 +9,10 @@ public sealed class PortAllocationService : IPortAllocationService
 {
     private readonly IPAddress _bindAddress;
 
-    public PortAllocationService(IOptions<PortAllocationServiceOptions> options!!)
+    public PortAllocationService(IOptions<PortAllocationServiceOptions> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         _bindAddress = InterpretIpAddress(options.Value.BindAddress);
     }
 

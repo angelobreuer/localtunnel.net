@@ -17,8 +17,11 @@ public class TunnelTransport : IConnectionListener
     private readonly SemaphoreSlim _connectionsLock;
     private readonly ITunnelAcceptorProvider _tunnelAcceptorProvider;
 
-    public TunnelTransport(EndPoint endPoint!!, ITunnelAcceptorProvider tunnelAcceptorProvider)
+    public TunnelTransport(EndPoint endPoint, ITunnelAcceptorProvider tunnelAcceptorProvider)
     {
+        ArgumentNullException.ThrowIfNull(endPoint);
+        ArgumentNullException.ThrowIfNull(tunnelAcceptorProvider);
+
         EndPoint = endPoint;
 
         _tunnelAcceptorProvider = tunnelAcceptorProvider;

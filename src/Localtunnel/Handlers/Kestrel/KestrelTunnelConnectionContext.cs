@@ -1,5 +1,6 @@
 ﻿namespace Localtunnel.Handlers.Kestrel;
 
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -14,8 +15,11 @@ public class KestrelTunnelConnectionContext : ITunnelConnectionContext
     private readonly ConnectionContext _connectionContext;
     private readonly TunnelConnectionTraceContext _connectionTraceContext;
 
-    public KestrelTunnelConnectionContext(ConnectionContext connectionContext!!, TunnelTraceListener traceListener)
+    public KestrelTunnelConnectionContext(ConnectionContext connectionContext, TunnelTraceListener traceListener)
     {
+        ArgumentNullException.ThrowIfNull(connectionContext);
+        ArgumentNullException.ThrowIfNull(traceListener);
+
         _connectionContext = connectionContext;
         _connectionTraceContext = traceListener.CreateContext(this);
     }

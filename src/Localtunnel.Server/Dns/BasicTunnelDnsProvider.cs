@@ -7,8 +7,10 @@ internal sealed class BasicTunnelDnsProvider : ITunnelDnsProvider
 {
     private readonly string _zone;
 
-    public BasicTunnelDnsProvider(IOptions<BasicTunnelDnsProviderOptions> options!!)
+    public BasicTunnelDnsProvider(IOptions<BasicTunnelDnsProviderOptions> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         _zone = options.Value.Zone ?? throw new InvalidOperationException("The DNS zone was not set.");
     }
 

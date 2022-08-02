@@ -60,15 +60,18 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
     public KestrelServer Server { get; }
 
     /// <inheritdoc/>
-    KestrelHttpServerConnectionContext IHttpApplication<KestrelHttpServerConnectionContext>.CreateContext(IFeatureCollection contextFeatures!!)
+    KestrelHttpServerConnectionContext IHttpApplication<KestrelHttpServerConnectionContext>.CreateContext(IFeatureCollection contextFeatures)
     {
+        ArgumentNullException.ThrowIfNull(contextFeatures);
+
         var traceContext = contextFeatures.Get<TunnelTraceContextFeature>()!.TraceContext;
         return new KestrelHttpServerConnectionContext(contextFeatures, traceContext);
     }
 
     /// <inheritdoc/>
-    void IHttpApplication<KestrelHttpServerConnectionContext>.DisposeContext(KestrelHttpServerConnectionContext context!!, Exception? exception)
+    void IHttpApplication<KestrelHttpServerConnectionContext>.DisposeContext(KestrelHttpServerConnectionContext context, Exception? exception)
     {
+        ArgumentNullException.ThrowIfNull(context);
     }
 
     /// <inheritdoc/>

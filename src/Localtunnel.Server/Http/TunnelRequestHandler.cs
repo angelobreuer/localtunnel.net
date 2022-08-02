@@ -1,12 +1,14 @@
 ﻿namespace Localtunnel.Server;
-
 internal sealed class TunnelRequestHandler
 {
     private readonly ITunnelDnsProvider _tunnelDnsProvider;
     private readonly ITunnelService _tunnelService;
 
-    public TunnelRequestHandler(ITunnelDnsProvider tunnelDnsProvider!!, ITunnelService tunnelService!!)
+    public TunnelRequestHandler(ITunnelDnsProvider tunnelDnsProvider, ITunnelService tunnelService)
     {
+        ArgumentNullException.ThrowIfNull(tunnelDnsProvider);
+        ArgumentNullException.ThrowIfNull(tunnelService);
+
         _tunnelDnsProvider = tunnelDnsProvider;
         _tunnelService = tunnelService;
     }

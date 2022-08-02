@@ -12,8 +12,11 @@ internal sealed class DelegatingCloseStream : Stream
     private readonly object? _callbackState;
     private bool _disposed;
 
-    public DelegatingCloseStream(Stream stream!!, Action<object?> postCleanupCallback!!, object? state)
+    public DelegatingCloseStream(Stream stream, Action<object?> postCleanupCallback, object? state)
     {
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(postCleanupCallback);
+
         _stream = stream;
         _postCleanupCallback = postCleanupCallback;
         _callbackState = state;

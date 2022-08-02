@@ -4,8 +4,11 @@ using System;
 
 public readonly struct TunnelId : IEquatable<TunnelId>
 {
-    public TunnelId(string host!!, string id!!)
+    public TunnelId(string host, string id)
     {
+        ArgumentNullException.ThrowIfNull(host);
+        ArgumentNullException.ThrowIfNull(id);
+
         Host = host;
         Id = id;
     }
