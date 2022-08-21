@@ -5,10 +5,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Nodes;
-using System.Threading;
 using System.Threading.Channels;
 using Localtunnel.Server.IO;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
 
@@ -74,6 +72,8 @@ internal sealed class TunnelInformation : IDisposable
             host: httpRequest.Host.Value,
             port: httpRequest.Host.Port.GetValueOrDefault(80),
             pathValue: httpRequest.Path.Value);
+
+        targetRequestUri.Query = httpRequest.QueryString.Value;
 
         var httpRequestMessage = new HttpRequestMessage
         {
