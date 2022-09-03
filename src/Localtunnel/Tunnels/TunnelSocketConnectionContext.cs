@@ -43,9 +43,17 @@ internal sealed class TunnelSocketConnectionContext : IDisposable
                 using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
                 Socket = socket;
 
-                await socket
-                    .ConnectAsync(_targetEndpoint, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await socket
+                        .ConnectAsync(_targetEndpoint, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (SocketException exception)
+                {
+                    _logger.LogError(exception, "[{Identifier}] Failed to connect to remote endpoint.", _contextIdentifier);
+                    throw;
+                }
 
                 _logger.LogInformation("[{Identifier}] Waiting for request.", _contextIdentifier);
 

@@ -11,21 +11,23 @@ using Localtunnel.Handlers;
 using Localtunnel.Properties;
 using Localtunnel.Tunnels;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 public sealed class LocaltunnelClient : IDisposable
 {
     public static readonly Uri DefaultBaseAddress = new("http://localtunnel.me/"); // TODO https
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<LocaltunnelClient>? _logger;
+    private readonly ILogger<LocaltunnelClient> _logger;
     private readonly ConcurrentDictionary<Tunnel, bool> _tunnels;
+    private readonly ILoggerFactory? _loggerFactory;
 
-    public LocaltunnelClient(ILogger<LocaltunnelClient>? logger = null)
-        : this(DefaultBaseAddress, logger)
+    public LocaltunnelClient(ILoggerFactory? loggerFactory = null)
+        : this(DefaultBaseAddress, loggerFactory)
     {
     }
 
-    public LocaltunnelClient(Uri baseAddress, ILogger<LocaltunnelClient>? logger = null)
+    public LocaltunnelClient(Uri baseAddress, ILoggerFactory? loggerFactory = null)
     {
         if (baseAddress is null)
         {
@@ -34,7 +36,8 @@ public sealed class LocaltunnelClient : IDisposable
 
         _tunnels = new ConcurrentDictionary<Tunnel, bool>();
         _httpClient = new() { BaseAddress = baseAddress };
-        _logger = logger;
+        _loggerFactory = loggerFactory;
+        _logger = _loggerFactory?.CreateLogger<LocaltunnelClient>() ?? NullLogger<LocaltunnelClient>.Instance;
     }
 
     public IEnumerable<Tunnel> Tunnels => _tunnels.Keys;
@@ -48,23 +51,23 @@ public sealed class LocaltunnelClient : IDisposable
         tunnelTraceListener ??= NullTunnelTraceListener.Instance;
 
         var tunnel = await OpenAsync(subdomain, cancellationToken);
-        return new Tunnel(this, tunnel, tunnelConnectionHandler, tunnelTraceListener, _logger);
+        return new Tunnel(this, tunnel, tunnelConnectionHandler, tunnelTraceListener, _loggerFactory);
     }
 
     public async Task<TunnelInformation> OpenAsync(string? subdomain = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        _logger?.LogInformation(Resources.CreatingTunnel);
+        _logger.LogInformation(Resources.CreatingTunnel);
 
         var requestUri = subdomain is null ? "/?new" : string.Concat('/', subdomain);
-        _logger?.LogTrace(Resources.SendingHttpGet, requestUri);
+        _logger.LogTrace(Resources.SendingHttpGet, requestUri);
 
         var response = (await _httpClient
             .GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken)
             .ConfigureAwait(false))!;
 
-        _logger?.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
+        _logger.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
 
         return response;
     }

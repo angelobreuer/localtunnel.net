@@ -21,6 +21,7 @@ public class Tunnel : IDisposable
     private readonly TunnelSocketConnectionContext[] _socketContexts;
     private readonly TunnelLifetime _tunnelLifetime;
     private readonly ConcurrentDictionary<ITunnelConnectionContext, bool> _connections;
+    private readonly ILogger<TunnelSocketConnectionContext> _tunnelSocketConnectionContextLogger;
     private bool _running;
     private bool _disposed;
 
@@ -29,12 +30,13 @@ public class Tunnel : IDisposable
         TunnelInformation information,
         ITunnelConnectionHandler tunnelConnectionHandler,
         TunnelTraceListener tunnelTraceListener,
-        ILogger? logger = null)
+        ILoggerFactory? loggerFactory = null)
     {
         _client = client;
         Information = information;
-        Logger = logger;
         TunnelTraceListener = tunnelTraceListener;
+
+        _tunnelSocketConnectionContextLogger = loggerFactory?.CreateLogger<TunnelSocketConnectionContext>() ?? NullLogger<TunnelSocketConnectionContext>.Instance;
 
         _connections = new ConcurrentDictionary<ITunnelConnectionContext, bool>();
         _tunnelConnectionHandler = tunnelConnectionHandler;
@@ -68,8 +70,6 @@ public class Tunnel : IDisposable
 
     public TunnelInformation Information { get; }
 
-    protected internal ILogger? Logger { get; }
-
     protected internal TunnelTraceListener TunnelTraceListener { get; }
 
     public async ValueTask StartAsync(int connections = 10, CancellationToken cancellationToken = default)
@@ -102,7 +102,7 @@ public class Tunnel : IDisposable
 
             for (var index = 0; index < Math.Min(connections, Information.MaximumConnections); index++)
             {
-                _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, NullLogger<TunnelSocketConnectionContext>.Instance); // TODO logger
+                _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, _tunnelSocketConnectionContextLogger);
             }
         }
         catch
