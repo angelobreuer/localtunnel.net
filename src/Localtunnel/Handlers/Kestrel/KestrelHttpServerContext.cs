@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,8 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
     private readonly IHttpRequestProcessingPipeline _httpRequestProcessingPipeline;
     private readonly HttpClient _httpClient;
 
+    private static readonly HashSet<string> _headersToStrip = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Transfer-Encoding", "Connection", };
+
     public KestrelHttpServerContext(ITunnelAcceptorProvider tunnelAcceptorProvider, ITunnelEndpointFactory tunnelEndpointFactory, IHttpRequestProcessingPipeline httpRequestProcessingPipeline)
     {
         _tunnelEndpointFactory = tunnelEndpointFactory;
@@ -41,6 +44,7 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
         var httpClientHandler = new SocketsHttpHandler
         {
             AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.All,
 
             ConnectCallback = async (context, cancellationToken) =>
             {
@@ -162,11 +166,21 @@ internal sealed class KestrelHttpServerContext : IHttpApplication<KestrelHttpSer
         // copy headers to response
         foreach (var (header, value) in responseMessage.Headers)
         {
+            if (_headersToStrip.Contains(header))
+            {
+                continue;
+            }
+
             httpContext.Response.Headers.TryAdd(header, new StringValues((string[])value!));
         }
 
         foreach (var (header, value) in responseMessage.Content.Headers)
         {
+            if (_headersToStrip.Contains(header))
+            {
+                continue;
+            }
+
             httpContext.Response.Headers.TryAdd(header, new StringValues((string[])value!));
         }
 
