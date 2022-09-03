@@ -3,14 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
-	<LangVersion>preview</LangVersion>
-	<OutputType>Library</OutputType>
-	<IsPackable>true</IsPackable>
-
+	  <LangVersion>preview</LangVersion>
+	  <OutputType>Library</OutputType>
+	  <IsPackable>true</IsPackable>
     <Description>Localtunnel implementation in .NET</Description>
     <Company>Angelo Breuer</Company>
     <Version>2.0.0-preview.1</Version>
-    <Copyright>Angelo Breuer 2021</Copyright>
+    <Copyright>Angelo Breuer 2022</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Angelo Breuer</Authors>
     <PackageProjectUrl>https://github.com/angelobreuer/localtunnel-client</PackageProjectUrl>
