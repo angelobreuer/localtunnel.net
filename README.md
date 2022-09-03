@@ -70,18 +70,42 @@ Commands:
 You can use localtunnel-client as a .NET library. The following code demonstrates how to create a secured tunnel:
 
 ```csharp
-using System.Threading.Tasks;
 using Localtunnel;
-using Localtunnel.Connections;
+using Localtunnel.Endpoints.Http;
+using Localtunnel.Handlers.Kestrel;
+using Localtunnel.Processors;
+using Microsoft.Extensions.Logging;
 
-using var client = new LocaltunnelClient();
-var options = new ProxiedSslTunnelOptions { };
+// Create logger factory to enable logging
+var loggerFactory = LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
-var tunnel = await client.OpenAsync(
-    connectionFactory: x => new ProxiedSslTunnelConnection(x, options),
-    subdomain: "my-domain");
+// You can also pass null as the loggerFactory to disable logging
+using var client = new LocaltunnelClient(loggerFactory);
 
-await Task.Delay(-1);
+// Build the processor pipeline
+var pipeline = new HttpRequestProcessingPipelineBuilder()
+    // Rewrite the host header to match the target server's host
+    .Append(new HttpHostHeaderRewritingRequestProcessor("test.angelobreuer.de"))
+    .Build();
+
+// Contact the destination server using HTTPS
+var endpointFactory = new HttpsTunnelEndpointFactory("test.angelobreuer.de", 443);
+
+// Build tunnel connection handler
+var tunnelConnectionHandler = new KestrelTunnelConnectionHandler(pipeline, endpointFactory);
+
+// Open the tunnel
+var tunnel = await client
+    .OpenAsync(tunnelConnectionHandler)
+    .ConfigureAwait(false);
+
+// Start accepting requests
+await tunnel
+    .StartAsync()
+    .ConfigureAwait(false);
+
+// Keep tunnel running
+await Task.Delay(-1).ConfigureAwait(false);
 ```
   
   ### Additional notes
