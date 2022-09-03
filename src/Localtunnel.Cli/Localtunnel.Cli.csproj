@@ -9,7 +9,7 @@
     <ToolCommandName>localtunnel</ToolCommandName>
     <Description>Localtunnel implementation in .NET</Description>
     <Company>Angelo Breuer</Company>
-    <Version>1.0.3</Version>
+    <Version>2.0.0-preview.1</Version>
     <Copyright>Angelo Breuer 2021</Copyright>
   </PropertyGroup>
 
