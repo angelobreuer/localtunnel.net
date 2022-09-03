@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Localtunnel.Cli", "src\Loca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Localtunnel.Server", "src\Localtunnel.Server\Localtunnel.Server.csproj", "{78147033-745D-4896-8D3B-8969F6D52BDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localtunnel.Sample", "src\Localtunnel.Sample\Localtunnel.Sample.csproj", "{3EF8E5C3-8512-4752-B121-38D6A267FD52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{78147033-745D-4896-8D3B-8969F6D52BDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78147033-745D-4896-8D3B-8969F6D52BDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78147033-745D-4896-8D3B-8969F6D52BDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EF8E5C3-8512-4752-B121-38D6A267FD52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EF8E5C3-8512-4752-B121-38D6A267FD52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EF8E5C3-8512-4752-B121-38D6A267FD52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EF8E5C3-8512-4752-B121-38D6A267FD52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
