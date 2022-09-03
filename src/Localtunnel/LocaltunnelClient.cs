@@ -1,62 +1,84 @@
-﻿namespace Localtunnel
+﻿namespace Localtunnel;
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Localtunnel.Handlers;
+using Localtunnel.Properties;
+using Localtunnel.Tunnels;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+public sealed class LocaltunnelClient : IDisposable
 {
-    using System;
-    using System.Net.Http;
-    using System.Net.Http.Json;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Localtunnel.Connections;
-    using Localtunnel.Properties;
-    using Localtunnel.Tunnels;
-    using Microsoft.Extensions.Logging;
+    public static readonly Uri DefaultBaseAddress = new("http://localtunnel.me/"); // TODO https
 
-    public sealed class LocaltunnelClient : IDisposable
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<LocaltunnelClient> _logger;
+    private readonly ConcurrentDictionary<Tunnel, bool> _tunnels;
+    private readonly ILoggerFactory? _loggerFactory;
+
+    public LocaltunnelClient(ILoggerFactory? loggerFactory = null)
+        : this(DefaultBaseAddress, loggerFactory)
     {
-        public static readonly Uri DefaultBaseAddress = new("https://localtunnel.me/");
+    }
 
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<LocaltunnelClient>? _logger;
-
-        public LocaltunnelClient(ILogger<LocaltunnelClient>? logger = null)
-            : this(DefaultBaseAddress, logger)
+    public LocaltunnelClient(Uri baseAddress, ILoggerFactory? loggerFactory = null)
+    {
+        if (baseAddress is null)
         {
+            throw new ArgumentNullException(nameof(baseAddress));
         }
 
-        public LocaltunnelClient(Uri baseAddress, ILogger<LocaltunnelClient>? logger = null)
-        {
-            if (baseAddress is null)
-            {
-                throw new ArgumentNullException(nameof(baseAddress));
-            }
+        _tunnels = new ConcurrentDictionary<Tunnel, bool>();
+        _httpClient = new() { BaseAddress = baseAddress };
+        _loggerFactory = loggerFactory;
+        _logger = _loggerFactory?.CreateLogger<LocaltunnelClient>() ?? NullLogger<LocaltunnelClient>.Instance;
+    }
 
-            _httpClient = new() { BaseAddress = baseAddress };
-            _logger = logger;
-        }
+    public IEnumerable<Tunnel> Tunnels => _tunnels.Keys;
 
-        /// <inheritdoc/>
-        public void Dispose() => _httpClient.Dispose();
+    /// <inheritdoc/>
+    public void Dispose() => _httpClient.Dispose();
 
-        public async Task<Tunnel> OpenAsync(Func<TunnelConnectionHandle, TunnelConnection> connectionFactory, string? subdomain = null, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+    public async Task<Tunnel> OpenAsync(ITunnelConnectionHandler tunnelConnectionHandler, string? subdomain = null, TunnelTraceListener? tunnelTraceListener = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        tunnelTraceListener ??= NullTunnelTraceListener.Instance;
 
-            var tunnel = await OpenAsync(subdomain, cancellationToken);
-            return new Tunnel(tunnel, connectionFactory, arrayPool: null, _logger);
-        }
+        var tunnel = await OpenAsync(subdomain, cancellationToken);
+        return new Tunnel(this, tunnel, tunnelConnectionHandler, tunnelTraceListener, _loggerFactory);
+    }
 
-        public async Task<TunnelInformation> OpenAsync(string? subdomain = null, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+    public async Task<TunnelInformation> OpenAsync(string? subdomain = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            _logger?.LogInformation(Resources.CreatingTunnel);
+        _logger.LogInformation(Resources.CreatingTunnel);
 
-            var requestUri = subdomain is null ? "/?new" : string.Concat('/', subdomain);
-            _logger?.LogTrace(Resources.SendingHttpGet, requestUri);
+        var requestUri = subdomain is null ? "/?new" : string.Concat('/', subdomain);
+        _logger.LogTrace(Resources.SendingHttpGet, requestUri);
 
-            var response = (await _httpClient.GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken))!;
-            _logger?.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
+        var response = (await _httpClient
+            .GetFromJsonAsync<TunnelInformation>(requestUri, cancellationToken)
+            .ConfigureAwait(false))!;
 
-            return response;
-        }
+        _logger.LogInformation(Resources.TunnelCreated, response.Id, response.MaximumConnections, response.Port, response.Url);
+
+        return response;
+    }
+
+    internal bool TryRegister(Tunnel tunnel)
+    {
+        return _tunnels.TryAdd(tunnel, false);
+    }
+
+    internal bool TryUnregister(Tunnel tunnel)
+    {
+        return _tunnels.TryRemove(tunnel, out _);
     }
 }

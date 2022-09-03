@@ -1,44 +1,90 @@
-﻿namespace Localtunnel.Tunnels
+﻿namespace Localtunnel.Tunnels;
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using Localtunnel.Connections;
+using Localtunnel.Handlers;
+using Localtunnel.Properties;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+public class Tunnel : IDisposable
 {
-    using System;
-    using System.Buffers;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
-    using Localtunnel.Connections;
-    using Localtunnel.Properties;
-    using Microsoft.Extensions.Logging;
+    private readonly LocaltunnelClient? _client;
+    private readonly ITunnelConnectionHandler _tunnelConnectionHandler;
+    private readonly TunnelSocketConnectionContext[] _socketContexts;
+    private readonly TunnelLifetime _tunnelLifetime;
+    private readonly ConcurrentDictionary<ITunnelConnectionContext, bool> _connections;
+    private readonly ILogger<TunnelSocketConnectionContext> _tunnelSocketConnectionContextLogger;
+    private bool _running;
+    private bool _disposed;
 
-    public class Tunnel : IDisposable
+    public Tunnel(
+        LocaltunnelClient? client,
+        TunnelInformation information,
+        ITunnelConnectionHandler tunnelConnectionHandler,
+        TunnelTraceListener tunnelTraceListener,
+        ILoggerFactory? loggerFactory = null)
     {
-        private readonly TunnelSocketContext[] _socketContexts;
+        _client = client;
+        Information = information;
+        TunnelTraceListener = tunnelTraceListener;
 
-        public Tunnel(TunnelInformation information, Func<TunnelConnectionHandle, TunnelConnection> connectionFactory, ArrayPool<byte>? arrayPool = null, ILogger? logger = null)
+        _tunnelSocketConnectionContextLogger = loggerFactory?.CreateLogger<TunnelSocketConnectionContext>() ?? NullLogger<TunnelSocketConnectionContext>.Instance;
+
+        _connections = new ConcurrentDictionary<ITunnelConnectionContext, bool>();
+        _tunnelConnectionHandler = tunnelConnectionHandler;
+        _tunnelLifetime = new TunnelLifetime();
+        _socketContexts = new TunnelSocketConnectionContext[10];
+
+        _client?.TryRegister(this);
+    }
+
+    public IEnumerable<ITunnelConnectionContext> Connections => _connections.Keys;
+
+    internal async ValueTask AcceptSocketAsync(Socket socket, CancellationToken cancellationToken = default)
+    {
+        var tunnelConnectionContext = await _tunnelConnectionHandler
+            .AcceptConnectionAsync(socket, TunnelTraceListener, cancellationToken)
+            .ConfigureAwait(false);
+
+        _connections.TryAdd(tunnelConnectionContext, false);
+
+        try
         {
-            Information = information ?? throw new ArgumentNullException(nameof(information));
-            ConnectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-            ArrayPool = arrayPool ?? ArrayPool<byte>.Shared;
-            Logger = logger;
+            await tunnelConnectionContext
+                .RunAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            _connections.TryRemove(tunnelConnectionContext, out _);
+        }
+    }
 
-            _socketContexts = new TunnelSocketContext[Information.MaximumConnections];
+    public TunnelInformation Information { get; }
+
+    protected internal TunnelTraceListener TunnelTraceListener { get; }
+
+    public async ValueTask StartAsync(int connections = 10, CancellationToken cancellationToken = default)
+    {
+        if (_running)
+        {
+            return;
         }
 
-        public IEnumerable<TunnelConnection> Connections => _socketContexts.Select(x => x?.Connection).Where(x => x is not null)!;
+        _running = true;
 
-        public TunnelInformation Information { get; }
-
-        protected internal ArrayPool<byte> ArrayPool { get; }
-
-        protected internal Func<TunnelConnectionHandle, TunnelConnection> ConnectionFactory { get; }
-
-        protected internal ILogger? Logger { get; }
-
-        /// <inheritdoc/>
-        public void Dispose() => Stop();
-
-        public async Task StartAsync(int connections = 10)
+        try
         {
+            _client?.TryRegister(this);
+
             // perform DNS resolution once
             if (!IPAddress.TryParse(Information.Url.Host, out var ipAddress))
             {
@@ -48,28 +94,55 @@
                     ?? throw new Exception(string.Format(Resources.DnsResolutionFailed, Information.Url.DnsSafeHost));
             }
 
+            await _tunnelConnectionHandler
+                .StartAsync(cancellationToken)
+                .ConfigureAwait(false);
+
             var endPoint = new IPEndPoint(ipAddress, Information.Port);
 
             for (var index = 0; index < Math.Min(connections, Information.MaximumConnections); index++)
             {
-                _socketContexts[index] = new TunnelSocketContext(this, endPoint, $"SocketContext-" + index);
-                _socketContexts[index].BeginConnect();
+                _socketContexts[index] = new TunnelSocketConnectionContext(this, $"SocketContext-" + index, endPoint, _tunnelLifetime, _tunnelSocketConnectionContextLogger);
             }
         }
-
-        public void Stop()
+        catch
         {
-            for (var index = 0; index < _socketContexts.Length; index++)
-            {
-                var context = _socketContexts[index];
-
-                if (context is null)
-                {
-                    continue;
-                }
-
-                context.Dispose();
-            }
+            _running = false;
+            throw;
         }
+    }
+
+    public void Stop()
+    {
+        if (!_running)
+        {
+            return;
+        }
+
+        _running = false;
+        _tunnelLifetime.Stop();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            _client?.TryUnregister(this);
+            Stop();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
