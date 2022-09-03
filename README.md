@@ -70,6 +70,8 @@ Commands:
 You can use localtunnel-client as a .NET library. The following code demonstrates how to create a secured tunnel:
 
 ```csharp
+// ! You need the latest (preview) version of localtunnel for this sample
+
 using Localtunnel;
 using Localtunnel.Endpoints.Http;
 using Localtunnel.Handlers.Kestrel;
