@@ -47,7 +47,7 @@ internal sealed class BasicTunnelDnsProvider : ITunnelDnsProvider
     /// <inheritdoc/>
     public bool TryGetTunnel(HostString hostString, string? subdomainName, out TunnelId tunnelId)
     {
-        if (!hostString.Value.Equals(_zone, StringComparison.OrdinalIgnoreCase))
+        if (!hostString.Host.Equals(_zone, StringComparison.OrdinalIgnoreCase))
         {
             tunnelId = default;
             return false;
