@@ -69,7 +69,7 @@ internal sealed class TunnelInformation : IDisposable
 
         var targetRequestUri = new UriBuilder(
             scheme: Uri.UriSchemeHttp,
-            host: httpRequest.Host.Value,
+            host: httpRequest.Host.Host,
             port: httpRequest.Host.Port.GetValueOrDefault(80),
             pathValue: httpRequest.Path.Value);
 
