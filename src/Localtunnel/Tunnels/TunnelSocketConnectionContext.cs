@@ -43,6 +43,11 @@ internal sealed class TunnelSocketConnectionContext : IDisposable
                 using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
                 Socket = socket;
 
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 3);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 8);
+                socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 2);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+
                 try
                 {
                     await socket
