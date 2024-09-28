@@ -12,8 +12,8 @@
     <Copyright>Angelo Breuer 2022</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Angelo Breuer</Authors>
-    <PackageProjectUrl>https://github.com/angelobreuer/localtunnel-client</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/angelobreuer/localtunnel-client</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/angelobreuer/localtunnel.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/localtunnel.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>localtunnel</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
